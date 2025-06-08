@@ -1,0 +1,118 @@
+/* About Page */
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* Hero Section */
+.about-hero {
+  position: relative;
+  text-align: center;
+  padding: 80px 20px;
+  color: white;
+  margin-bottom: 40px;
+  border-radius: 0 0 20px 20px;
+  background-image: url('../../assets/dj.webp'); /* 👈 Use correct relative path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.about-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4); /* 👈 semi-transparent black overlay */
+  z-index: 0;
+  border-radius: 0 0 20px 20px;
+}
+
+.about-hero h1, 
+.about-hero p {
+  position: relative;
+  z-index: 1; /* 👈 ensures text appears above the overlay */
+}
+
+.about-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 3px rgba(50, 74, 70, 0.3);
+}
+
+.about-hero p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Sections */
+.about-section {
+  margin-bottom: 60px;
+  padding: 0 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  color: #324a46;
+}
+
+.section-header h2 {
+  font-size: 2rem;
+  margin-left: 15px;
+}
+
+.section-icon {
+  color: #00c4ae;
+  font-size: 1.8rem;
+}
+
+.section-content {
+  line-height: 1.8;
+  color: #324a46;
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section-content p {
+  margin-bottom: 20px;
+}
+
+/* Team Section */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+/* Careers Section */
+.careers-content {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.careers-content p {
+  margin-bottom: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-hero h1 {
+    font-size: 2.2rem;
+  }
+  
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header h2 {
+    font-size: 1.8rem;
+  }
+}

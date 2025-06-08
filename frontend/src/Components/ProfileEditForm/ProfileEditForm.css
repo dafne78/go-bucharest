@@ -1,0 +1,257 @@
+/* ProfileEditForm.css */
+
+.profile-edit-form-container {
+  background-color: #f8fdff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e1f0fa;
+}
+
+.form-title {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #324a46;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.form-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #00c4ae;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #324a46;
+}
+
+.form-control {
+  padding: 12px 15px;
+  border: 2px solid #e1f0fa;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  color: #324a46;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #00c4ae;
+  box-shadow: 0 0 0 3px rgba(0, 196, 174, 0.1);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-text {
+  font-size: 0.875rem;
+  color: #70838a;
+  margin-top: 5px;
+}
+
+/* Selected Interests */
+.selected-interests {
+  margin-bottom: 10px;
+}
+
+.interests-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.interest-tag {
+  display: flex;
+  align-items: center;
+  background-color: #00c4ae;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 6px;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.remove-tag-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.no-interests {
+  color: #70838a;
+  font-style: italic;
+  margin: 5px 0;
+}
+
+/* Add Custom Interest */
+.add-interest-group {
+  display: flex;
+  gap: 10px;
+}
+
+.add-interest-btn {
+  background-color: #00c4ae;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-interest-btn:hover {
+  background-color: #00b397;
+}
+
+.add-interest-btn:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+/* Interest Options */
+.interests-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.interest-option {
+  position: relative;
+}
+
+.interest-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.interest-option label {
+  display: inline-block;
+  background-color: #eaf8f6;
+  color: #00c4ae;
+  padding: 8px 15px;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.interest-option label:hover {
+  background-color: #d0f2ed;
+}
+
+.interest-option label.selected {
+  background-color: #00c4ae;
+  color: white;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.cancel-btn, .save-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cancel-btn {
+  background-color: #f0f0f0;
+  color: #5a727a;
+  border: none;
+}
+
+.cancel-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #00c4ae 0%, #1da193 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 196, 174, 0.2);
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 196, 174, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-edit-form-container {
+    padding: 20px;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .cancel-btn, .save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .add-interest-group {
+    flex-direction: column;
+  }
+  
+  .add-interest-btn {
+    padding: 10px;
+  }
+}

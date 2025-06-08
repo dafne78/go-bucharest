@@ -1,0 +1,122 @@
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--surface);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--spacing-md);
+  text-align: left;
+}
+
+.data-table th {
+  background-color: rgba(65, 192, 139, 0.05);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.data-table tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(65, 192, 139, 0.03);
+}
+
+.action-cell {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.action-button {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-button.edit {
+  background-color: rgba(133, 205, 250, 0.1);
+  color: var(--primary-light);
+}
+
+.action-button.delete {
+  background-color: rgba(255, 87, 87, 0.1);
+  color: #ff5757;
+}
+
+.action-button.view {
+  background-color: rgba(65, 192, 139, 0.1);
+  color: var(--primary);
+}
+
+.action-button:hover {
+  background-color: rgba(65, 192, 139, 0.2);
+}
+
+/* Add these styles to your existing Table.css */
+
+.action-emoji {
+  font-size: 16px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-button.edit:hover {
+  background-color: rgba(133, 205, 250, 0.1);
+}
+
+.action-button.delete:hover {
+  background-color: rgba(255, 87, 87, 0.1);
+}
+
+.action-button.view:hover {
+  background-color: rgba(65, 192, 139, 0.1);
+}
+
+.sort-indicator {
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.sortable-column {
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+.sortable-column:hover {
+  background-color: rgba(65, 192, 139, 0.1);
+}
