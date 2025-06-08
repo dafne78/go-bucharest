@@ -1,9 +1,9 @@
 import { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import authService from '../../services/authService';
 import apiService from '../../services/apiService';
-import '../SignupPage/Auth.css'; // Shared auth styles
+import '../SignupPage/Auth.css';
 
 const LoginPage = ({setisLoggedIn}) => {
   const { login } = useContext(AuthContext);
@@ -58,67 +58,66 @@ const LoginPage = ({setisLoggedIn}) => {
 
   return (
     <div className="auth-container">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1 className="auth-title">Log In</h1>
-        
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="form-input"
-            disabled={loading}
-          />
+      <div className="auth-form-container">
+        <div className="auth-header">
+          <h1>Welcome Back</h1>
+          <p>Please sign in to your account</p>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Password</label>
-          <div className="password-input-container">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
+          
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              name="password"
-              value={formData.password}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               required
-              className="form-input"
-              disabled={loading}
             />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={togglePasswordVisibility}
-              tabIndex="-1"
-            >
-              {showPassword ? "👁️" : "👁️‍🗨️"}
-            </button>
           </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <div className="password-input-container">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="auth-button primary"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>
+            Don't have an account?{' '}
+            <Link to="/signup">Sign up</Link>
+          </p>
         </div>
-
-        <button 
-          type="submit" 
-          className="auth-button"
-          disabled={loading}
-        >
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-
-        <a href="/signup" className="auth-link">
-          Don't have an account? Sign up
-        </a>
-      </form>
+      </div>
     </div>
   );
-}
+};
 
 export default LoginPage;

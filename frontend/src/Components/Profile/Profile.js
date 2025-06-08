@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Profile.css';
-import { event_list} from '../../assets/events';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Link } from 'react-router-dom';
 import { FaUser, FaCalendarAlt, FaHistory, FaEdit, FaStar, FaUserShield } from 'react-icons/fa';
-import EventCard from '../../Components/EventCard/EventCard';
-import ProfileEditForm from '../../Components/ProfileEditForm/ProfileEditForm';
+import EventCard from '../EventCard/EventCard';
+import ProfileEditForm from '../ProfileEditForm/ProfileEditForm';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
@@ -18,6 +17,9 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [pastEvents, setPastEvents] = useState([]);
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
 
   // User data state
   const [userData, setUserData] = useState({
@@ -27,31 +29,54 @@ const Profile = () => {
     interests: []
   });
 
-  // Fetch user data on component mount
+  // Fetch user data and bookings on component mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await apiService.get('/auth/me');
         
-        if (response.success && response.data) {
+        // Fetch user data
+        const userResponse = await apiService.get('/auth/me');
+        if (userResponse.success && userResponse.data) {
           setUserData({
-            ...response.data,
-            interests: response.data.interests || []
+            ...userResponse.data,
+            interests: userResponse.data.interests || []
           });
-          setIsAdmin(response.data.role === 'admin');
+          setIsAdmin(userResponse.data.role === 'admin');
         } else {
           throw new Error('Failed to fetch user data');
         }
+
+        // Fetch user's bookings
+        const bookingsResponse = await apiService.get('/bookings/my-events');
+        if (bookingsResponse.success && bookingsResponse.data) {
+          setBookings(bookingsResponse.data);
+          
+          // Separate past and upcoming events
+          const now = new Date();
+          const past = [];
+          const upcoming = [];
+          
+          bookingsResponse.data.forEach(booking => {
+            const eventDate = new Date(booking.event.date);
+            if (eventDate < now) {
+              past.push(booking.event);
+            } else {
+              upcoming.push(booking.event);
+            }
+          });
+          
+          setPastEvents(past);
+        }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching data:', error);
         setError(error.message || 'Failed to load profile data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, []);
 
   // Set initial selected date
@@ -59,100 +84,47 @@ const Profile = () => {
     setSelectedDate(new Date());
   }, []);
 
-  // Update selected date when calendar tab is active
-  useEffect(() => {
-    if (activeTab === "calendar" && !selectedDate) {
-      setSelectedDate(new Date());
-    }
-  }, [activeTab, selectedDate]);
-
-  // Filter events - only past events for the events tab
-  const pastEvents = event_list
-    .filter(event => new Date(event.date) < new Date())
-    .slice(0, 6);
-
-  // Events for specific date
-  const getEventsForDate = (date) => {
-    if (!date) return [];
-    return event_list.filter(event => {
-      const eventDate = new Date(event.date);
-      return (
-        eventDate.getDate() === date.getDate() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getFullYear() === date.getFullYear()
-      );
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
+    // Filter events for the selected date
+    const eventsOnDate = bookings.filter(booking => {
+      const eventDate = new Date(booking.event.date);
+      return eventDate.toDateString() === newDate.toDateString();
     });
+    setSelectedDateEvents(eventsOnDate);
   };
 
-  // Check if a date has events
-  const hasEvents = (date) => {
-    return getEventsForDate(date).length > 0;
+  // Function to check if a date has events
+  const tileContent = ({ date }) => {
+    const hasEvents = bookings.some(booking => {
+      const eventDate = new Date(booking.event.date);
+      return eventDate.toDateString() === date.toDateString();
+    });
+
+    return hasEvents ? <div className="event-dot" /> : null;
   };
 
-  // Custom tile content for calendar
-  const tileContent = ({ date, view }) => {
-    if (view === 'month' && hasEvents(date)) {
-      return <div className="event-dot"></div>;
-    }
-    return null;
+  const handleEditClick = () => {
+    setIsEditing(true);
   };
 
-  // Custom tile class for calendar
-  const tileClassName = ({ date, view }) => {
-    if (view === 'month' && hasEvents(date)) {
-      return 'has-events';
-    }
-    return null;
+  const handleEditCancel = () => {
+    setIsEditing(false);
   };
 
-  // Handler for calendar date click
-  const handleDateClick = (value) => {
-    setDate(value);
-    setSelectedDate(value);
-  };
-
-  // Check if user has left a review for an event
-  const hasLeftReview = (event) => {
-    if (!event.reviews) return false;
-    return event.reviews.some(review => review.userId === userData.id);
-  };
-
-  // Toggle edit mode
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-  };
-
-  // Save profile data after editing
-  const handleSaveProfile = async (formData) => {
+  const handleEditSave = async (updatedData) => {
     try {
-      setIsLoading(true);
-      const response = await apiService.put(`/users/${userData.id}`, formData);
-      
+      const response = await apiService.put('/auth/me', updatedData);
       if (response.success && response.data) {
         setUserData({
           ...response.data,
-          profileImage: response.data.profileImage || userData.profileImage
+          interests: response.data.interests || []
         });
         setIsEditing(false);
-      } else {
-        throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       setError(error.message || 'Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle admin panel navigation
-  const handleAdminPanelClick = () => {
-    const token = authService.getToken();
-    if (token) {
-      // Store token temporarily in localStorage with a specific key for admin panel
-      localStorage.setItem('admin_auth_token', token);
-      // Open admin panel in a new window
-      window.open('http://localhost:3001/admin', '_blank');
     }
   };
 
@@ -181,153 +153,164 @@ const Profile = () => {
 
   return (
     <div className="profile-main-container">
-      {/* Profile Tab Navigation */}
       <div className="profile-navigation">
-        <button 
+        <button
           className={`profile-nav-item ${activeTab === "info" ? "active" : ""}`}
           onClick={() => setActiveTab("info")}
         >
-          <FaUser className="profile-nav-icon" />
-          <span>Profile Info</span>
+          <FaUser className="profile-nav-icon" /> Profile Info
         </button>
-        <button 
+        <button
           className={`profile-nav-item ${activeTab === "calendar" ? "active" : ""}`}
           onClick={() => setActiveTab("calendar")}
         >
-          <FaCalendarAlt className="profile-nav-icon" />
-          <span>Calendar</span>
+          <FaCalendarAlt className="profile-nav-icon" /> Calendar
         </button>
-        <button 
-          className={`profile-nav-item ${activeTab === "events" ? "active" : ""}`}
-          onClick={() => setActiveTab("events")}
+        <button
+          className={`profile-nav-item ${activeTab === "history" ? "active" : ""}`}
+          onClick={() => setActiveTab("history")}
         >
-          <FaHistory className="profile-nav-icon" />
-          <span>Past Events</span>
+          <FaHistory className="profile-nav-icon" /> Past Events
         </button>
       </div>
 
-      {/* Profile Content */}
-      {activeTab === "info" && !isEditing && (
-        <div className="profile-info-section">
-          <div className="profile-info-row">
-            <div className="profile-details">
-              <div className="profile-header">
-                <h1>{userData.name}</h1>
-                <div className="profile-actions">
-                  <button className="edit-profile-button" onClick={toggleEditMode}>
-                    <FaEdit /> Edit Profile
-                  </button>
-                  {isAdmin && (
-                    <button 
-                      className="admin-panel-button"
-                      onClick={handleAdminPanelClick}
-                    >
-                      <FaUserShield /> Admin Panel
-                    </button>
-                  )}
+      <div className="profile-content">
+        {activeTab === "info" && (
+          <div className="profile-info-section">
+            <div className="profile-header">
+              <h1>{userData.name}</h1>
+              <button className="edit-profile-button" onClick={handleEditClick}>
+                <FaEdit /> Edit Profile
+              </button>
+            </div>
+
+            {isEditing ? (
+              <ProfileEditForm
+                userData={userData}
+                onSave={handleEditSave}
+                onCancel={handleEditCancel}
+              />
+            ) : (
+              <>
+                <div className="user-bio">
+                  {userData.bio || "No bio provided"}
                 </div>
-              </div>
-              <p className="user-bio">{userData.bio || 'No bio available'}</p>
-              
-              <div className="user-tags">
-                <div className="tags-section interests-section">
-                  <h3>Interests</h3>
-                  <div className="tags-list">
-                    {userData.interests.length > 0 ? (
-                      userData.interests.map((interest, index) => (
-                        <span key={index} className="tag">{interest}</span>
-                      ))
-                    ) : (
-                      <p className="no-tags">No interests added yet</p>
-                    )}
+                <div className="user-tags">
+                  <div className="tags-section">
+                    <h3>Interests</h3>
+                    <div className="tags-list">
+                      {userData.interests.length > 0 ? (
+                        userData.interests.map((interest, index) => (
+                          <span key={index} className="tag">
+                            {interest}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="no-tags">No interests added yet</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === "calendar" && (
+          <div className="calendar-section">
+            <div className="calendar-wrapper">
+              <Calendar
+                onChange={handleDateChange}
+                value={selectedDate}
+                className="react-calendar"
+                tileContent={tileContent}
+              />
             </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "info" && isEditing && (
-        <ProfileEditForm 
-          user={userData} 
-          onSave={handleSaveProfile} 
-          onCancel={toggleEditMode} 
-        />
-      )}
-
-      {activeTab === "calendar" && (
-        <div className="calendar-section">
-          <div className="calendar-wrapper">
-            <Calendar
-              onChange={handleDateClick}
-              value={date}
-              tileContent={tileContent}
-              tileClassName={tileClassName}
-            />
-          </div>
-          
-          {selectedDate && (
-            <div className="selected-date-events">
-              <h3>Events for {selectedDate.toLocaleDateString()}</h3>
-              {getEventsForDate(selectedDate).length > 0 ? (
+            {selectedDateEvents.length > 0 && (
+              <div className="selected-date-events">
+                <h3 className="selected-date-title">
+                  Events on {selectedDate.toLocaleDateString()}
+                </h3>
                 <div className="date-events-list">
-                  {getEventsForDate(selectedDate).map(event => (
-                    <div key={event._id} className="date-event-item">
-                      <img src={event.image} alt={event.name} className="date-event-image" />
+                  {selectedDateEvents.map((booking) => (
+                    <div key={booking._id} className="date-event-item">
+                      <img
+                        src={booking.event.image}
+                        alt={booking.event.title}
+                        className="date-event-image"
+                      />
                       <div className="date-event-info">
-                        <h4>{event.name}</h4>
-                        <p><span className="event-time-label">Time:</span> {event.time}</p>
-                        <p><span className="event-location-label">Location:</span> {event.location.exact}</p>
-                        <Link to={`/events/${event._id}`} className="view-event-button">
+                        <h4>{booking.event.title}</h4>
+                        <p>
+                          <span className="event-time-label">
+                            {new Date(booking.event.date).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </p>
+                        <Link
+                          to={`/events/${booking.event._id}`}
+                          className="view-event-button"
+                        >
                           View Event
                         </Link>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="no-events-for-date">
-                  <p>{selectedDate.toDateString() === new Date().toDateString() ? 
-                    "You are free today! 🎉" : 
-                    "No events scheduled for this day! 🎉"}</p>
-                  <p className="no-events-suggestion">Looking for something to do?</p>
-                  <Link to="/events" className="browse-events-link">Discover Events</Link>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
 
-      {activeTab === "events" && (
-        <div className="profile-events-section">
-          <h2 className="section-title">Your Past Events</h2>
-          {pastEvents.length > 0 ? (
-            <div className="events-grid">
-              {pastEvents.map(event => (
-                <div key={event._id} className="past-event-card">
-                  <EventCard event={event} />
-                  {!hasLeftReview(event) && (
-                    <div className="review-reminder">
-                      <FaStar className="review-star-icon" />
-                      <p>You haven't left a review yet!</p>
-                      <Link to={`/reviews/${event._id}`} className="leave-review-button">
-                        Leave a Review
-                      </Link>
+        {activeTab === "history" && (
+          <div className="past-events-section">
+            <h2 className="past-events-title">Past Events</h2>
+            {pastEvents.length > 0 ? (
+              <div className="past-events-list">
+                {pastEvents.map((event) => (
+                  <div key={event.id} className="past-event-card">
+                    <div className="past-event-image-container">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="past-event-image"
+                      />
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="no-events-message">
-              You haven't attended any events yet.
-              <Link to="/events" className="browse-events-link">Browse events</Link>
-            </p>
-          )}
-        </div>
-      )}
+                    <div className="past-event-content">
+                      <h3 className="past-event-title">{event.title}</h3>
+                      <div className="past-event-details">
+                        <span className="past-event-date">
+                          <FaCalendarAlt className="past-event-icon" />
+                          {new Date(event.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="past-event-description">{event.description}</p>
+                      <div className="past-event-footer">
+                        <Link
+                          to={`/events/${event.id}`}
+                          className="view-past-event-button"
+                        >
+                          View Event Details
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-past-events">
+                <FaHistory className="no-past-events-icon" />
+                <p className="no-past-events-message">No past events found</p>
+                <p className="no-past-events-submessage">
+                  Your past event history will appear here
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

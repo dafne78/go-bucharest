@@ -20,6 +20,7 @@ const createEvent = async (eventData) => {
       cost: eventData.cost || 0,
       description: eventData.description || '',
       reviews: [], // Nu stocăm recenzii direct la creare
+      participants: [],
       categories: eventData.categories || [],
       date: eventData.date,
       time: eventData.time,
@@ -439,6 +440,108 @@ const getEventsByUser = async (userId) => {
   }
 };
 
+/**
+ * Adaugă un participant la eveniment
+ * @param {string} eventId - ID-ul evenimentului
+ * @param {Object} participantData - Datele participantului
+ * @returns {Promise<void>}
+ */
+const addParticipantToEvent = async (eventId, participantData) => {
+  try {
+    const eventRef = db.collection(eventsCollection).doc(eventId);
+
+    await db.runTransaction(async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      
+      if (!eventDoc.exists) {
+        throw new Error('Evenimentul nu a fost găsit');
+      }
+
+      const eventData = eventDoc.data();
+      const participants = eventData.participants || [];
+      
+      // Verifică dacă participantul există deja
+      const existingParticipant = participants.find(p => p.userId === participantData.userId);
+      if (existingParticipant) {
+        throw new Error('Utilizatorul este deja înregistrat la acest eveniment');
+      }
+
+      // Creează obiectul participant
+      const newParticipant = {
+        userId: participantData.userId,
+        userName: participantData.userName,
+        userEmail: participantData.userEmail,
+        joinedAt: new Date().toISOString()
+      };
+
+      // Adaugă noul participant la array
+      participants.push(newParticipant);
+
+      // Actualizează documentul în tranzacție
+      transaction.update(eventRef, {
+        participants: participants,
+        updatedAt: new Date().toISOString()
+      });
+
+      console.log('Participant added successfully:', {
+        eventId,
+        participant: newParticipant,
+        totalParticipants: participants.length
+      });
+    });
+  } catch (error) {
+    console.error('Error adding participant to event:', error);
+    throw error;
+  }
+};
+
+/**
+ * Elimină un participant de la eveniment
+ * @param {string} eventId - ID-ul evenimentului
+ * @param {string} userId - ID-ul utilizatorului
+ * @returns {Promise<void>}
+ */
+const removeParticipantFromEvent = async (eventId, userId) => {
+  try {
+    const eventRef = db.collection(eventsCollection).doc(eventId);
+
+    await db.runTransaction(async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      
+      if (!eventDoc.exists) {
+        throw new Error('Evenimentul nu a fost găsit');
+      }
+
+      const eventData = eventDoc.data();
+      const participants = eventData.participants || [];
+      
+      // Găsește participantul
+      const participantIndex = participants.findIndex(p => p.userId === userId);
+      if (participantIndex === -1) {
+        throw new Error('Utilizatorul nu este înregistrat la acest eveniment');
+      }
+
+      // Elimină participantul din array
+      participants.splice(participantIndex, 1);
+
+      // Actualizează documentul în tranzacție
+      transaction.update(eventRef, {
+        participants: participants,
+        updatedAt: new Date().toISOString()
+      });
+
+      console.log('Participant removed successfully:', {
+        eventId,
+        userId,
+        remainingParticipants: participants.length
+      });
+    });
+  } catch (error) {
+    console.error('Error removing participant from event:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   createEvent,
   getAllEvents,
@@ -453,5 +556,7 @@ module.exports = {
   getEventsByZone,
   getEventsByCostRange,
   getUpcomingEvents,
-  getEventsByUser
+  getEventsByUser,
+  addParticipantToEvent,
+  removeParticipantFromEvent
 };

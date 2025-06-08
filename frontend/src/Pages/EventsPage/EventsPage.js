@@ -34,7 +34,7 @@ const EventsPage = () => {
           setCategories(categoriesResponse.data);
         } else {
           throw new Error('Failed to fetch categories');
-        }
+  }
 
         // Fetch zones
         const zonesResponse = await apiService.get('/location-zones');
@@ -62,10 +62,10 @@ const EventsPage = () => {
     const locationMatch = locationFilter === 'all' || 
       (event.zoneDetails && event.zoneDetails.id === locationFilter);
 
-    const dateMatch = (() => {
-      if (dateFilter === 'all') return true;
-      
-      const eventDate = new Date(event.date);
+  const dateMatch = (() => {
+    if (dateFilter === 'all') return true;
+
+    const eventDate = new Date(event.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -91,12 +91,12 @@ const EventsPage = () => {
         case 'month':
           return eventDate >= today && eventDate <= month;
         default:
-          return true;
+    return true;
       }
-    })();
+  })();
 
-    return categoryMatch && locationMatch && dateMatch;
-  });
+  return categoryMatch && locationMatch && dateMatch;
+});
 
   // Log the zones data when it changes
   useEffect(() => {

@@ -1,58 +1,64 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import authService from "../../services/authService";
 import "./Navbar.css";
 
-const Navbar = ({ isLoggedIn }) => {
-  const location = useLocation();
+const Navbar = ({ isLoggedIn, setisLoggedIn }) => {
+  const navigate = useNavigate();
 
-  // Helper function to determine if a link is active
-  const isActive = (path) => {
-    return location.pathname === path;
+  const handleSignOut = (e) => {
+    e.preventDefault();
+    // Clear all auth data using authService
+    authService.logout();
+    // Update login state
+    setisLoggedIn(false);
+    // Redirect to home page
+    navigate("/");
   };
 
   return (
-    <nav className="nav">
-      <Link to="/" className="site-title">
-        Go Bucharest
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="nav-logo">
+          <span className="logo-text">Go Bucharest</span>
       </Link>
 
-      <ul className="navbar-menu">
-        <li className={isActive("/") ? "active" : ""}>
-          <Link to="/" className="nav-link">
-            Home
+        <ul className="nav-menu">
+          <li className="nav-item">
+            <Link to="/" className="nav-link">Home</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/about" className="nav-link">About</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/events" className="nav-link">Events</Link>
+        </li>
+          <li className="nav-item">
+            <Link to="/review" className="nav-link">Review</Link>
+        </li>
+          <li className="nav-item">
+            <Link to="/contact" className="nav-link">Contact</Link>
+        </li>
+          {isLoggedIn ? (
+            <>
+              <li className="nav-item">
+                <Link to="/profile" className="nav-link">Profile</Link>
+        </li>
+              <li className="nav-item">
+                <Link to="/" onClick={handleSignOut} className="nav-link">
+                  Sign Out
           </Link>
         </li>
-
-        <li className={isActive("/about") ? "active" : ""}>
-          <Link to="/about" className="nav-link">
-            About us
+            </>
+          ) : (
+            <li className="nav-item">
+              <Link to="/login" className="nav-link">
+                Log In
           </Link>
         </li>
-
-        <li className={isActive("/events") ? "active" : ""}>
-          <Link to="/events" className="nav-link">
-            Events
-          </Link>
-        </li>
-
-        <li className={isActive("/review") ? "active" : ""}>
-          <Link to="/review" className="nav-link">
-            Review
-          </Link>
-        </li>
-
-        <li className={isActive("/contact") ? "active" : ""}>
-          <Link to="/contact" className="nav-link">
-            Contact
-          </Link>
-        </li>
-
-        <li className={isActive("/profile") ? "active" : ""}>
-          <Link to="/profile" className="nav-link">
-            Profile
-          </Link>
-        </li>
+          )}
       </ul>
+      </div>
     </nav>
   );
 };

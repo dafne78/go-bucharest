@@ -19,7 +19,8 @@ const eventCategoryRoutes = require('./routes/eventCategoryRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const imageRoutes = require('./routes/imageRoutes');
-const userRoutes = require('./routes/userRoutes')
+const userRoutes = require('./routes/userRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 
 // Creează aplicația Express
@@ -67,7 +68,8 @@ app.use('/api/event-categories', eventCategoryRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/image', imageRoutes);
-app.use('/api/users', userRoutes)
+app.use('/api/users', userRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Gestionarea rutelor inexistente
 app.use((req, res) => {
@@ -83,6 +85,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Pornește serverul
 // Pornește serverul
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

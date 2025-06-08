@@ -5,18 +5,14 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const handleErrors = async (response) => {
   if (!response.ok) {
+    const errorData = await response.json();
+    
     if (response.status === 401) {
-      // Nu șterge token-ul automat, doar afișează eroarea
-      console.error('Authentication failed');
       throw new Error('Authentication failed. Please check your credentials.');
     }
 
-    try {
-      const error = await response.json();
-      throw new Error(error.message || `Error ${response.status}: ${response.statusText}`);
-    } catch (e) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
+    // Aruncă eroarea cu mesajul de la server dacă există
+    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
   }
   return response;
 };
@@ -40,7 +36,11 @@ const fetchWithAuth = async (endpoint, options = {}) => {
       headers
     });
 
-    await handleErrors(response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+    }
+
     return await response.json();
   } catch (error) {
     console.error('API Error:', error);
@@ -94,6 +94,5 @@ const apiService = {
     return result.data;
   }
 };
-
 
 export default apiService;

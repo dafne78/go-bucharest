@@ -271,100 +271,94 @@
 }
 
 .event-dot {
-  height: 6px;
-  width: 6px;
+  height: 8px;
+  width: 8px;
   background-color: #00c4ae;
   border-radius: 50%;
-  margin: 4px auto 0;
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Selected Date Events */
 .selected-date-events {
-  margin-top: 30px;
-}
-
-.date-events-container {
+  margin-top: 2rem;
+  padding: 1.5rem;
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .selected-date-title {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   color: #324a46;
-  margin-bottom: 20px;
-  text-align: center;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e1f0fa;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
 .date-events-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1rem;
 }
 
 .date-event-item {
   display: flex;
+  gap: 1rem;
+  padding: 1rem;
   background-color: #f8fdff;
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 8px;
   border: 1px solid #e1f0fa;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .date-event-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .date-event-image {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
+  border-radius: 8px;
 }
 
 .date-event-info {
-  padding: 15px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .date-event-info h4 {
-  margin: 0 0 8px;
-  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
   color: #324a46;
+  font-size: 1.1rem;
 }
 
-.date-event-info p {
-  margin: 5px 0;
+.event-time-label {
+  color: #70838a;
   font-size: 0.9rem;
-  color: #5a727a;
-}
-
-.event-time-label,
-.event-location-label {
-  font-weight: 600;
-  color: #00c4ae;
-  margin-right: 5px;
 }
 
 .view-event-button {
   display: inline-block;
-  margin-top: 10px;
-  background-color: #00c4ae;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #00c4ae 0%, #1da193 100%);
   color: white;
-  padding: 8px 15px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+  margin-top: 0.5rem;
 }
 
 .view-event-button:hover {
-  background-color: #00b397;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 196, 174, 0.2);
 }
 
 /* Loading and Error States */
@@ -876,7 +870,11 @@
 
   .date-event-image {
     width: 100%;
-    height: 140px;
+    height: 150px;
+  }
+
+  .date-event-info {
+    padding: 0.5rem 0;
   }
 }
 

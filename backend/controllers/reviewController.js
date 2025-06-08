@@ -1,6 +1,7 @@
 // /backend/controllers/reviewController.js
 const reviewModel = require('../models/reviewModel');
 const eventModel = require('../models/eventModel');
+const userModel = require('../models/userModel');
 
 /**
  * @desc    Creează o nouă recenzie
@@ -31,8 +32,15 @@ exports.createReview = async (req, res) => {
     
     // Obține datele utilizatorului
     const userId = req.user.uid;
-    const userName = req.user.name || 'Utilizator';
-    const profilePicture = req.user.profilePicture || null;
+    
+    // Obține profilul utilizatorului din Firestore
+    const userProfile = await userModel.getUserById(userId);
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profilul utilizatorului nu a fost găsit'
+      });
+    }
     
     // Verifică dacă utilizatorul a mai adăugat o recenzie la acest eveniment
     const existingReviews = await reviewModel.getReviewsByEvent(eventId);
@@ -48,11 +56,12 @@ exports.createReview = async (req, res) => {
     // Crează recenzia
     const reviewId = await reviewModel.createReview({
       userId,
-      userName,
-      profilePicture,
+      userName: userProfile.name,
+      profilePicture: userProfile.profileImage || null,
       eventId,
       grade,
-      reviewText
+      reviewText,
+      userEmail: userProfile.email
     });
     
     // Obține recenzia creată
