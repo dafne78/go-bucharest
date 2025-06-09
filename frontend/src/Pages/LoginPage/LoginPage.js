@@ -39,14 +39,14 @@ const LoginPage = ({setisLoggedIn}) => {
         // Save token and user data
         authService.login(token, userData);
         
-        // Update context
-        setisLoggedIn(true);
+        // Update context and state
         login();
+        setisLoggedIn(true);
         
         // Redirect to profile
         navigate('/profile');
       } else {
-        setError('Invalid response from server.');
+        setError('Invalid credentials. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);

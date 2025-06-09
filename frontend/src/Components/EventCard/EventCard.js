@@ -73,71 +73,73 @@ const EventCard = ({ event }) => {
           onClose={() => setNotification(null)}
         />
       )}
-    <div className="event-card">
-        {event.image ? (
-      <img src={event.image} alt={event.name} className="event-image" />
-        ) : (
-          <div className="no-image-placeholder">
-            <span className="no-image-emoji">🖼️</span>
-            <span className="no-image-text">No Image</span>
-          </div>
-        )}
+      <div className="event-card-main">
+        <div className="event-card-img-wrapper">
+          {event.image ? (
+            <img src={event.image} alt={event.name} className="event-card-img" />
+          ) : (
+            <div className="event-card-no-img">
+              <span className="event-card-no-img-icon">🖼️</span>
+              <span className="event-card-no-img-text">No Image</span>
+            </div>
+          )}
+        </div>
       
-      <div className="event-info">
-        <h3 className="event-name">{event.name}</h3>
+        <div className="event-card-content">
+          <h3 className="event-card-title">{event.name}</h3>
 
-          <div className="event-meta">
-            <div className="meta-item">
-              <span className="meta-emoji">💰</span>
-              <span className="meta-value">
+          <div className="event-card-meta">
+            <div className="event-card-meta-item">
+              <span className="event-card-meta-icon">💰</span>
+              <span className="event-card-meta-text">
                 {event.cost && event.cost > 0 ? `${event.cost} RON` : 'Free Entry'}
               </span>
             </div>
 
-            <div className="meta-item">
-              <span className="meta-emoji">⭐</span>
-              <span className="meta-value">
+            <div className="event-card-meta-item">
+              <span className="event-card-meta-icon">⭐</span>
+              <span className="event-card-meta-text">
                 {getAverageRating(event.reviews)} ({event.reviews?.length || 0})
-          </span>
+              </span>
             </div>
-        </div>
+          </div>
 
-          <div className="event-datetime-location">
-            <div className="meta-item">
-              <span className="meta-emoji">📅</span>
-              <span className="meta-value">{formatDate(event.date)}</span>
+          <div className="event-card-details">
+            <div className="event-card-meta-item">
+              <span className="event-card-meta-icon">📅</span>
+              <span className="event-card-meta-text">{formatDate(event.date)}</span>
             </div>
             
-            <div className="meta-item">
-              <span className="meta-emoji">📍</span>
-              <span className="meta-value">
+            <div className="event-card-meta-item">
+              <span className="event-card-meta-icon">📍</span>
+              <span className="event-card-meta-text">
                 {event.zoneDetails ? event.zoneDetails.name : capitalize(event.location?.zone)}
               </span>
             </div>
           </div>
 
           {event.description && (
-        <p className="event-description">
-          {event.description.substring(0, 100)}...
-        </p>
+            <p className="event-card-description">
+              {event.description.substring(0, 100)}...
+            </p>
           )}
 
           {event.categoryDetails && event.categoryDetails.length > 0 && (
-            <div className="event-categories">
+            <div className="event-card-categories">
               {event.categoryDetails.map((category, index) => (
-                <span key={index} className="category-tag">
+                <span key={index} className="event-card-category">
                   {category.category_name || category.name}
                 </span>
               ))}
             </div>
           )}
 
-        <div className="event-actions">
-          <Link to={`/events/${event._id}`} className="event-details-link">
-            View Details
-          </Link>
+          <div className="event-card-actions">
+            <Link to={`/events/${event._id}`} className="event-card-link">
+              View Details
+            </Link>
             <button 
-              className="event-book-button"
+              className="event-card-button"
               onClick={handleBooking}
               disabled={isBooking}
             >

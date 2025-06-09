@@ -4,8 +4,7 @@ import eventService from '../../../services/eventsService';
 import Table from '../../common/Table/Table';
 import './EventList.css';
 
-const EventList = ({ onEdit, onView, onDelete }) => {
-  const [events, setEvents] = useState([]);
+const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,8 +139,7 @@ const EventList = ({ onEdit, onView, onDelete }) => {
           {value ? (
             <img src={`${value}`} alt={`${row.name} thumbnail`} />
           ) : (
-            <div className="no-image">
-              <span className="no-image-emoji">🖼️</span>
+            <div className="no-image"> 
               <span className="no-image-text">No image</span>
             </div>
           )}
@@ -155,7 +153,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
       render: (value, row) => (
         <div className="event-name-cell">
           <div className="event-name">
-            <span className="event-name-emoji">🎉</span>
             {value}
           </div>
           {row.description && (
@@ -173,11 +170,9 @@ const EventList = ({ onEdit, onView, onDelete }) => {
       render: (value, row) => (
         <div className="date-time-cell">
           <div className="date-display">
-            <span className="date-emoji">📅</span>
             {formatDate(value)}
           </div>
           <div className="time-display">
-            <span className="time-emoji">⏰</span>
             {formatTime(row.time)}
           </div>
         </div>
@@ -190,19 +185,16 @@ const EventList = ({ onEdit, onView, onDelete }) => {
         <div className="location-cell">
           {value?.exact && (
             <div className="venue-display" title={value.exact}>
-              <span className="location-emoji">🏢</span>
               <span className="venue-text">{value.exact}</span>
             </div>
           )}
           {row.zoneDetails && (
             <div className="zone-display" title={row.zoneDetails.name}>
-              <span className="location-emoji">🗺️</span>
               <span className="zone-text">{row.zoneDetails.name}</span>
             </div>
           )}
           {!value?.exact && !row.zoneDetails && (
             <div className="zone-display">
-              <span className="location-emoji">📍</span>
               <span className="zone-text">Not specified</span>
             </div>
           )}
@@ -215,7 +207,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
       sortable: true,
       render: (value) => (
         <div className={`cost-display ${value && value > 0 ? 'cost-paid' : 'cost-free'}`}>
-          <span className="cost-emoji">💰</span>
           {value && value > 0 ? `${value} RON` : 'Free'}
         </div>
       )
@@ -228,7 +219,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
         const status = getEventStatus(row.date);
         return (
           <span className={`status-badge ${status}`}>
-            <span className="status-emoji">{status === 'upcoming' ? '🔜' : '✅'}</span>
             {status === 'upcoming' ? 'Upcoming' : 'Completed'}
           </span>
         );
@@ -242,7 +232,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
           {value && value.length > 0 ? (
             <>
               <div className="categories-count">
-                <span className="categories-emoji">📂</span>
                 {value.length} {value.length === 1 ? 'category' : 'categories'}
               </div>
               <div className="categories-list" title={value.map(cat => cat.category_name || cat.name).join(', ')}>
@@ -251,7 +240,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
             </>
           ) : (
             <div className="no-categories">
-              <span className="no-categories-emoji">🚫</span>
               No categories
             </div>
           )}
@@ -263,7 +251,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
       accessor: 'reviews',
       render: (value) => (
         <div className="reviews-display">
-          <span className="reviews-emoji">⭐</span>
           <span className="reviews-count">{value ? value.length : 0}</span>
         </div>
       )
@@ -272,24 +259,20 @@ const EventList = ({ onEdit, onView, onDelete }) => {
 
   const actions = [
     { 
-      type: 'view', 
-      emoji: '👁️', 
-      label: 'View Details',
-      onClick: onView
-    },
-    { 
       type: 'edit', 
-      emoji: '✏️', 
-      label: 'Edit Event',
+      label: 'Edit',
       onClick: onEdit
-    },
-    { 
-      type: 'delete', 
-      emoji: '🗑️', 
-      label: 'Delete Event',
-      onClick: handleDeleteEvent
     }
   ];
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading events...</p>
+      </div>
+    );
+  }
 
   const StatusFilterMenu = () => (
     <div className="filter-menu">
@@ -300,7 +283,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
           setShowStatusFilter(false);
         }}
       >
-        <span>📋</span>
         All Events ({statusCounts.all})
       </div>
       <div 
@@ -310,7 +292,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
           setShowStatusFilter(false);
         }}
       >
-        <span>🔜</span>
         Upcoming ({statusCounts.upcoming})
       </div>
       <div 
@@ -320,7 +301,6 @@ const EventList = ({ onEdit, onView, onDelete }) => {
           setShowStatusFilter(false);
         }}
       >
-        <span>✅</span>
         Completed ({statusCounts.completed})
       </div>
     </div>
@@ -329,7 +309,24 @@ const EventList = ({ onEdit, onView, onDelete }) => {
   return (
     <div className="event-list">
       <div className="list-header">
+        <div className="list-actions">
+          <button className="refresh-button" onClick={fetchEvents}>
+          <i className="refresh-icon"></i>
+            Refresh
+          </button>
+        </div>
         <div className="search-filter">
+          <div className="filter-dropdown">
+            <button 
+              className={`filter-button ${showStatusFilter ? 'active' : ''}`}
+              onClick={() => setShowStatusFilter(!showStatusFilter)}
+            >
+              {statusFilter === 'all' ? 'All Events' : 
+               statusFilter === 'upcoming' ? 'Upcoming Events' : 'Completed Events'}
+            </button>
+            {showStatusFilter && <StatusFilterMenu />}
+          </div>
+          
           <div className="search-box">
             <input
               type="text"
@@ -338,106 +335,52 @@ const EventList = ({ onEdit, onView, onDelete }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <span className="search-emoji">🔍</span>
-          </div>
-          
-          <div className="filter-dropdown">
-            <button 
-              className={`filter-button ${showStatusFilter ? 'active' : ''}`}
-              onClick={() => setShowStatusFilter(!showStatusFilter)}
-            >
-              <span className="filter-emoji">🔽</span>
-              Status Filter
-            </button>
-            {showStatusFilter && <StatusFilterMenu />}
           </div>
         </div>
-        
-        <div className="list-actions">
-          <button className="refresh-button" onClick={fetchEvents}>
-            <span className="refresh-emoji">🔄</span>
-            Refresh
+      </div>
+
+      {error ? (
+        <div className="error-container">
+          <p className="error-text">{error}</p>
+          <button className="retry-button" onClick={fetchEvents}>
+            Try Again
           </button>
         </div>
-      </div>
-
-      <div className="list-content">
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p className="loading-text">
-              <span className="loading-emoji">⏳</span>
-              Loading events...
-            </p>
-          </div>
-        ) : error ? (
-          <div className="error-container">
-            <span className="error-emoji">❌</span>
-            <p className="error-text">{error}</p>
-            <button className="retry-button" onClick={fetchEvents}>
-              <span className="retry-emoji">🔄</span>
-              Try Again
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="list-stats">
-              <div className="stats-left">
-                <div className="stats-item">
-                  <span className="stats-emoji">📊</span>
-                  Total: <strong>{events.length}</strong> events
-                </div>
-                <div className="stats-item">
-                  <span className="stats-emoji">👁️</span>
-                  Displayed: <strong>{filteredEvents.length}</strong>
-                </div>
-                <div className="stats-item">
-                  <span className="stats-emoji">🔜</span>
-                  Upcoming: <strong>{statusCounts.upcoming}</strong>
-                </div>
-                <div className="stats-item">
-                  <span className="stats-emoji">✅</span>
-                  Completed: <strong>{statusCounts.completed}</strong>
-                </div>
+      ) : (
+        <>
+          {filteredEvents.length > 0 ? (
+            <Table 
+              columns={columns} 
+              data={filteredEvents} 
+              actions={actions}
+              onSort={requestSort}
+              sortConfig={sortConfig}
+              keyField="_id"
+            />
+          ) : (
+            <div className="no-results">
+              <div className="no-results-text">
+                {searchTerm || statusFilter !== 'all' ? (
+                  <>
+                    <p>No events found matching your search criteria.</p>
+                    <button 
+                      className="clear-filters-button"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setStatusFilter('all');
+                      }}
+                    >
+                      Clear Filters
+                    </button>
+                  </>
+                ) : (
+                  <p>No events available. Create your first event to get started!</p>
+                )}
               </div>
             </div>
-
-            {filteredEvents.length > 0 ? (
-              <Table 
-                columns={columns} 
-                data={filteredEvents} 
-                actions={actions}
-                onSort={requestSort}
-                sortConfig={sortConfig}
-                keyField="_id"
-              />
-            ) : (
-              <div className="no-results">
-                <span className="no-results-emoji">🔍</span>
-                <div className="no-results-text">
-                  {searchTerm || statusFilter !== 'all' ? (
-                    <>
-                      <p>No events found matching your search criteria.</p>
-                      <button 
-                        className="clear-filters-button"
-                        onClick={() => {
-                          setSearchTerm('');
-                          setStatusFilter('all');
-                        }}
-                      >
-                        <span className="clear-emoji">🧹</span>
-                        Clear Filters
-                      </button>
-                    </>
-                  ) : (
-                    <p>No events available. Create your first event to get started!</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -1,13 +1,13 @@
 // /backend/controllers/authController.js
-const { auth } = require('../config/firebase');
+const { auth, clientAuth, signInWithEmailAndPassword } = require('../config/firebase');
 const userModel = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
-// Setează un secret pentru JWT (ar trebui să fie în .env)
+// Set JWT secret (should be in .env)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 /**
- * @desc    Înregistrare utilizator nou
+ * @desc    Register new user
  * @route   POST /api/auth/register
  * @access  Public
  */
@@ -18,25 +18,25 @@ exports.register = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email și parola sunt obligatorii'
+        message: 'Email and password are required'
       });
     }
 
-    // Creează utilizatorul în Firebase Auth
+    // Create user in Firebase Auth
     const userRecord = await auth.createUser({
       email,
       password,
       displayName: name || email.split('@')[0]
     });
 
-    // Creează profilul utilizatorului în Firestore
+    // Create user profile in Firestore
     await userModel.createUser(userRecord.uid, {
       email,
       name: name || email.split('@')[0],
       role: 'user'
     });
 
-    // Generează JWT token
+    // Generate JWT token
     const token = jwt.sign(
       { uid: userRecord.uid, email, role: 'user' },
       JWT_SECRET,
@@ -45,7 +45,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Utilizator înregistrat cu succes',
+      message: 'User registered successfully',
       data: {
         userId: userRecord.uid,
         email: userRecord.email,
@@ -63,7 +63,7 @@ exports.register = async (req, res) => {
 };
 
 /**
- * @desc    Login utilizator
+ * @desc    Login user
  * @route   POST /api/auth/login
  * @access  Public
  */
@@ -74,28 +74,43 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email și parola sunt obligatorii'
+        message: 'Email and password are required'
       });
     }
 
-    // Găsește utilizatorul după email
-    const userRecord = await auth.getUserByEmail(email);
+    // Authenticate user with Firebase Client SDK
+    const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
+    const userRecord = userCredential.user;
+
+    // Get user role from Firestore
+    const userProfile = await userModel.getUserById(userRecord.uid);
     
-    // Generează JWT token
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+
+    // Generate JWT token
     const token = jwt.sign(
-      { uid: userRecord.uid, email, role: 'user' },
+      { 
+        uid: userRecord.uid, 
+        email: userRecord.email, 
+        role: userProfile.role || 'user' 
+      },
       JWT_SECRET,
       { expiresIn: '1d' }
     );
     
     res.status(200).json({
       success: true,
-      message: 'Autentificare reușită',
+      message: 'Login successful',
       data: {
         userId: userRecord.uid,
         email: userRecord.email,
         name: userRecord.displayName,
-        role: userRecord.role,
+        role: userProfile.role || 'user',
         token
       }
     });
@@ -103,13 +118,13 @@ exports.login = async (req, res) => {
     console.error('Error logging in:', error);
     res.status(401).json({
       success: false,
-      message: 'Email sau parolă incorecte'
+      message: 'Invalid email or password'
     });
   }
 };
 
 /**
- * @desc    Obține profilul utilizatorului curent
+ * @desc    Get current user profile
  * @route   GET /api/auth/me
  * @access  Private
  */
@@ -117,13 +132,13 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const userId = req.user.uid;
     
-    // Obține profilul utilizatorului din Firestore
+    // Get user profile from Firestore
     const userProfile = await userModel.getUserById(userId);
     
     if (!userProfile) {
       return res.status(404).json({
         success: false,
-        message: 'Utilizator negăsit'
+        message: 'User not found'
       });
     }
     
@@ -135,7 +150,7 @@ exports.getCurrentUser = async (req, res) => {
     console.error('Error getting user profile:', error);
     res.status(500).json({
       success: false,
-      message: 'Eroare la obținerea profilului',
+      message: 'Error retrieving profile',
       error: error.message
     });
   }

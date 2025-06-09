@@ -3,25 +3,21 @@ import Header from '../../components/common/Header/Header';
 import authService from '../../services/authService';
 import eventService from '../../services/eventsService';
 import './Events.css';
-import EventList from '../../components/events/EventList/EventList';
 import EventForm from '../../components/events/EventForm/EventForm';
 import EventDetails from '../../components/events/EventDetails/EventDetails';
+import EventList from '../../components/events/EventList/EventList';
 
 const EventsPage = () => {
-  // Get user from auth service
   const [user, setUser] = useState(authService.getUser());
-  
-  // Your existing state
   const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]);
   const [activeView, setActiveView] = useState('list');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -40,18 +36,22 @@ const EventsPage = () => {
   const handleAddEvent = () => {
     setSelectedEvent(null);
     setActiveView('add');
+    setError(null);
+    setIsModalOpen(true);
   };
 
   const handleEditEvent = (event) => {
     setSelectedEvent(event);
-    console.log("Selected event for edit:", event);
     setActiveView('edit');
+    setError(null);
+    setIsModalOpen(true);
   };
 
-  const handleViewEvent = (event) => {
-    setSelectedEvent(event);
-    console.log("Selected event for view:", event);
-    setActiveView('view');
+  const handleCloseForm = () => {
+    setActiveView('list');
+    setSelectedEvent(null);
+    setError(null);
+    setIsModalOpen(false);
   };
 
   const handleDeleteEvent = async (event) => {
@@ -63,21 +63,12 @@ const EventsPage = () => {
         const updatedEvents = events.filter(e => e._id !== event._id);
         setEvents(updatedEvents);
         
-        // Apply current filter to the updated events
-        applyFilter(filter, updatedEvents);
-        
         showSuccessMessage('Event deleted successfully!');
       } catch (error) {
         console.error('Error deleting event:', error);
         setError(error.message || 'Failed to delete event');
       }
     }
-  };
-
-  const handleCloseForm = () => {
-    setActiveView('list');
-    setSelectedEvent(null);
-    setError(null);
   };
 
   const handleSaveEvent = async (eventData) => {
@@ -89,7 +80,6 @@ const EventsPage = () => {
       
       if (selectedEvent) {
         // Update existing Event
-        console.log("Updating event:", selectedEvent);
         await eventService.updateEvent(selectedEvent._id, eventData);
         setSuccessMessage('Event updated successfully!');
         
@@ -109,7 +99,6 @@ const EventsPage = () => {
       }
       
       setEvents(updatedEvents);
-      applyFilter(filter, updatedEvents);
       
       // Show success message
       setShowSuccess(true);
@@ -120,19 +109,13 @@ const EventsPage = () => {
       }, 3000);
       
       // Return to list
-      setActiveView('list');
+      handleCloseForm();
     } catch (error) {
       console.error('Error saving event:', error);
       setError(error.message || 'Could not save the event. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Function to determine event status
-  const getEventStatus = (eventDate) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return eventDate > currentDate ? 'upcoming' : 'completed';
   };
 
   // Show success message with auto-hide
@@ -149,14 +132,12 @@ const EventsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching all events...');
       
       const response = await eventService.getEvents(); // Get all events
       console.log('API Response:', response);
       
       if (response.success) {
         setEvents(response.data);
-        applyFilter('all', response.data); // Initially show all events
       } else {
         throw new Error(response.message || 'Failed to load events');
       }
@@ -168,55 +149,10 @@ const EventsPage = () => {
     }
   };
 
-  // Apply filter based on event status
-  const applyFilter = (filterType, eventsToFilter = events) => {
-    let filtered = [...eventsToFilter];
-
-    if (filterType === 'upcoming') {
-      filtered = filtered.filter(event => getEventStatus(event.date) === 'upcoming');
-    } else if (filterType === 'completed') {
-      filtered = filtered.filter(event => getEventStatus(event.date) === 'completed');
-    }
-    // For 'all', we don't filter anything
-
-    // Sort by date (upcoming events first, then by date)
-    filtered.sort((a, b) => {
-      const statusA = getEventStatus(a.date);
-      const statusB = getEventStatus(b.date);
-      
-      // If both are upcoming or both are completed, sort by date
-      if (statusA === statusB) {
-        return new Date(a.date) - new Date(b.date);
-      }
-      
-      // Upcoming events come first
-      return statusA === 'upcoming' ? -1 : 1;
-    });
-
-    setFilteredEvents(filtered);
-  };
-
-  // Handle filter change
-  const handleFilterChange = (newFilter) => {
-    setFilter(newFilter);
-    applyFilter(newFilter);
-  };
-
-  // Handle logout
-  const handleLogout = () => {
-    authService.logout();
-    window.location.href = '/login';
-  };
-
   // Fetch events on component mount
   useEffect(() => {
     fetchEvents();
   }, []);
-
-  // Get counts for filter buttons
-  const getAllEventsCount = () => events.length;
-  const getUpcomingEventsCount = () => events.filter(e => getEventStatus(e.date) === 'upcoming').length;
-  const getCompletedEventsCount = () => events.filter(e => getEventStatus(e.date) === 'completed').length;
 
   // Add modal styles to ensure proper display
   const modalOverlayStyle = {
@@ -233,162 +169,64 @@ const EventsPage = () => {
     padding: '20px'
   };
 
-  const modalContentStyle = {
-    backgroundColor: 'var(--surface, white)',
-    borderRadius: 'var(--border-radius-md, 8px)',
-    width: '100%',
-    maxWidth: '900px',
-    maxHeight: '90vh',
-    overflow: 'auto',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-  };
-
-  const modalHeaderStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 'var(--spacing-lg, 24px)',
-    borderBottom: '1px solid var(--border, #e0e0e0)',
-    background: 'linear-gradient(135deg, var(--primary, #007bff) 0%, var(--primary-dark, #0056b3) 100%)',
-    color: 'white'
-  };
-
-  const closeButtonStyle = {
-    background: 'rgba(255, 255, 255, 0.2)',
-    border: 'none',
-    fontSize: '1.5rem',
-    cursor: 'pointer',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    transition: 'background-color 0.2s'
-  };
-
   return (
     <div className="events-page">
-      {/* Pass user from auth service to Header */}
       <Header 
         title="Events Management" 
-        user={user}
-        onLogout={handleLogout} // Optional: add logout functionality to Header
+        handleAdd={handleAddEvent}
+        handleAddText = "Add New Event"
       />
       
-      {showSuccess && (
-        <div className="success-alert">
-          <span className="success-icon">✅</span>
-          {successMessage}
-          <button className="close-alert" onClick={() => setShowSuccess(false)}>×</button>
-        </div>
-      )}
-
-      {error && (
-        <div className="error-alert">
-          <span className="error-icon">❌</span>
-          <div className="error-content">
-            <strong>Error</strong>
-            <p>{error}</p>
-          </div>
-          <button className="close-alert" onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-      
-      <div className="page-actions">
-        <div className="filter-section">
-          <button 
-            className={`filter-button ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('all')}
-          >
-            📋 All Events ({getAllEventsCount()})
-          </button>
-          <button 
-            className={`filter-button ${filter === 'upcoming' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('upcoming')}
-          >
-            🔜 Upcoming ({getUpcomingEventsCount()})
-          </button>
-          <button 
-            className={`filter-button ${filter === 'completed' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('completed')}
-          >
-            ✅ Completed ({getCompletedEventsCount()})
-          </button>
-        </div>
-        
-        <div className="action-buttons">
-          {activeView === 'list' && (
-            <button className="add-button" onClick={handleAddEvent}>
-              <span className="add-emoji">➕</span>
-              Add Event
-            </button>
-          )}
-        </div>
-      </div>
-      
       {loading ? (
-        <div className="loading-indicator">
-          <span className="loading-spinner">⏳</span>
-          Loading events...
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading events...</p>
         </div>
       ) : (
         <div className="events-content">
           {activeView === 'list' && (
             <>
-              {filteredEvents.length === 0 && !loading && (
+              {events.length === 0 && !loading && (
                 <div className="empty-state">
-                  <div className="empty-icon">📅</div>
-                  <p>
-                    {filter === 'upcoming' && 'No upcoming events found.'}
-                    {filter === 'completed' && 'No completed events found.'}
-                    {filter === 'all' && 'No events found.'}
-                  </p>
-                  {filter !== 'all' && (
-                    <button className="view-all-button" onClick={() => handleFilterChange('all')}>
-                      View All Events
-                    </button>
-                  )}
+                  <p>No events found.</p>
                 </div>
               )}
               
-              {filteredEvents.length > 0 && (
-                <EventList 
-                  events={filteredEvents}
-                  onEdit={handleEditEvent} 
-                  onView={handleViewEvent}
-                  onDelete={handleDeleteEvent}
+              {events.length > 0 && (
+                <EventList
+                  events={events}
+                  onEdit={handleEditEvent}
+                  setEvents={setEvents}
                 />
               )}
             </>
           )}
 
           {(activeView === 'add' || activeView === 'edit') && (
-            <div style={modalOverlayStyle}>
-              <div style={modalContentStyle}>
-                <div style={modalHeaderStyle}>
-                  <h2>{activeView === 'add' ? '➕ Add Event' : '✏️ Edit Event'}</h2>
-                  <button style={closeButtonStyle} onClick={handleCloseForm}>×</button>
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h2>
+                    {activeView === 'add' ? 'Add New Event' : 'Edit Event'}
+                  </h2>
+                  <button className="close-button" onClick={handleCloseForm}>×</button>
                 </div>
+              
+                {error && (
+                  <div className="error-alert modal-error">
+                    <span className="error-icon">❌</span>
+                    {error}
+                  </div>
+                )}
                 
-                <EventForm 
-                  event={selectedEvent} 
-                  onSubmit={handleSaveEvent} 
+                <EventForm
+                  event={selectedEvent}
+                  onSubmit={handleSaveEvent}
                   onCancel={handleCloseForm}
+                  onDelete={selectedEvent ? handleDeleteEvent : null}
                   isLoading={isLoading}
                 />
               </div>
-            </div>
-          )}
-
-          {activeView === 'view' && selectedEvent && (
-            <div style={modalOverlayStyle}>
-              <EventDetails 
-                eventId={selectedEvent._id} 
-                onClose={handleCloseForm}
-                onEdit={handleEditEvent}
-              />
             </div>
           )}
         </div>

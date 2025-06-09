@@ -10,25 +10,42 @@ import './Categories.css';
 
 const CategoryPage = () => {
   const [user, setUser] = useState(authService.getUser());
+  const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
   const [activeView, setActiveView] = useState('list');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      // Redirect to login if not authenticated
-      window.location.href = '/login';
-      return;
-    }
-    
-    // Update user state
-    const currentUser = authService.getUser();
-    setUser(currentUser);
-    console.log('Current user in EventsPage:', currentUser);
+    fetchCategories();
+    fetchTags();
   }, []);
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await categoryService.getAllCategories();
+      setCategories(response.data);
+    } catch (error) {
+      setError('Could not load categories. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await categoryService.getAllTags();
+      setTags(response.data);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
 
   const handleAddCategory = () => {
     setSelectedCategory(null);
@@ -83,44 +100,40 @@ const CategoryPage = () => {
       setIsLoading(false);
     }
   };
-    // Handle logout
-  const handleLogout = () => {
-    authService.logout();
-    window.location.href = '/login';
-  };
-
   return (
     <div className="categories-page">
       <Header 
-              title="Categories Management" 
-              user={user}
-              onLogout={handleLogout} // Optional: add logout functionality to Header
-            />
+        title="Events Management" 
+        handleAdd={handleAddCategory}
+        handleAddText = "Add New Category"
+      />
       
-      {showSuccess && (
-        <div className="success-alert">
-          <span className="success-icon">✅</span>
-          {successMessage}
-          <button className="close-alert" onClick={() => setShowSuccess(false)}>×</button>
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading events...</p>
         </div>
-      )}
-      
-      <div className="page-actions">
-        {activeView === 'list' && (
-          <button className="add-button" onClick={handleAddCategory}>
-            <span className="add-emoji">📁</span>
-            Add Category
-          </button>
-        )}
-      </div>
-      
-      <div className="categories-content">
-        {activeView === 'list' && (
-          <CategoryList 
-            onEdit={handleEditCategory} 
-            onView={handleViewCategory} 
-          />
-        )}
+      ) : (
+        <div className="categories-content">
+          {activeView === 'list' && (
+            <>
+              {categories.length === 0 && !loading && (
+                <div className="empty-state">
+                  <p>No categories found.</p>
+                </div>
+              )}
+              
+              {categories.length > 0 && (
+                <CategoryList
+                  onEdit={handleEditCategory} 
+                  onView={handleViewCategory} 
+                  categories={categories}
+                  tags={tags}
+                  setCategories={setCategories}
+                />
+              )}
+            </>
+          )}
         
         {(activeView === 'add' || activeView === 'edit') && (
           <div className="modal-overlay">
@@ -156,6 +169,7 @@ const CategoryPage = () => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

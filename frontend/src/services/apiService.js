@@ -11,7 +11,7 @@ const handleErrors = async (response) => {
       throw new Error('Authentication failed. Please check your credentials.');
     }
 
-    // Aruncă eroarea cu mesajul de la server dacă există
+    // Throw error with server message if it exists
     throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
   }
   return response;
@@ -25,7 +25,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     ...options.headers
   };
 
-  // Adaugă token-ul în format Bearer
+  // Add token in Bearer format
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -80,7 +80,7 @@ const apiService = {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`
-        // Nu adăugăm manual Content-Type
+        // Don't add Content-Type manually
       },
       body: formData
     });

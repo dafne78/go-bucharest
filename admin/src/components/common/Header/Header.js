@@ -1,28 +1,15 @@
 import React from 'react';
 import './Header.css';
 
-const Header = ({ title, user }) => {
+const Header = ({ title, handleAddText, handleAdd }) => {
   return (
-    <header className="header">
+    <header className="page-header">
       <h1>{title}</h1>
-      <div className="header-actions">
-        <div className="search-container">
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="search-input" 
-          />
-          <button className="search-button">
-            <i className="search-icon"></i>
-          </button>
-        </div>
-        <div className="admin-profile">
-          <span className="admin-name">Hello, {user.name} </span>
-          <div className="admin-avatar">
-            <span>👑</span>
+          <div className="action-buttons">
+            <button className="header-add-button" onClick={handleAdd}>
+              {handleAddText}
+            </button>
           </div>
-        </div>
-      </div>
     </header>
   );
 };

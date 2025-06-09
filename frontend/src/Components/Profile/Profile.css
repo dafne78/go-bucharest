@@ -886,8 +886,7 @@
 
 .profile-actions {
   display: flex;
-  margin-left: 1rem;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -905,6 +904,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 196, 174, 0.15);
+  text-decoration: none;
 }
 
 .admin-panel-button:hover {
@@ -919,4 +919,17 @@
 
 .admin-panel-button svg {
   font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .profile-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .admin-panel-button,
+  .edit-profile-button {
+    width: 100%;
+    justify-content: center;
+  }
 }

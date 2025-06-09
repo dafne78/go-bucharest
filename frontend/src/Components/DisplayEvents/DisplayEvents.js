@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DisplayEvents.css';
-import EventCard from '../EventCard/EventCard';
+import HomeEventCard from '../HomeEventCard/HomeEventCard';
 import apiService from '../../services/apiService';
 
 const DisplayEvents = () => {
@@ -47,21 +47,12 @@ const DisplayEvents = () => {
     );
   }
 
-  
-  if (error) {
-    return (
-      <div className="events-error">
-        <p>Error: {error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="display-events">
       <div className="events-grid">
         {events.length > 0 ? (
           events.map(event => (
-            <EventCard key={event._id} event={event} />
+            <HomeEventCard key={event._id} event={event} />
           ))
         ) : (
           <div className="no-events">

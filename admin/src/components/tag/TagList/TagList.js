@@ -4,11 +4,13 @@ import tagService from '../../../services/tagService';
 import Table from '../../common/Table/Table';
 import './TagList.css';
 
-const TagList = ({ onEdit, onView }) => {
+const TagList = ({ onEdit, onDelete }) => {
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
   useEffect(() => {
@@ -30,14 +32,28 @@ const TagList = ({ onEdit, onView }) => {
   };
 
   const handleDeleteTag = async (tag) => {
-    if (window.confirm('Are you sure you want to delete this tag?')) {
+    if (window.confirm(`Are you sure you want to delete "${tag.name}"?`)) {
       try {
         await tagService.deleteTag(tag.id);
         setTags(tags.filter(t => t.id !== tag.id));
+        if (onDelete) {
+          onDelete(tag);
+        }
       } catch (error) {
         console.error('Error deleting tag:', error);
         alert('Could not delete the tag. Please try again.');
       }
+    }
+  };
+
+  const handleEditTag = async (tag) => {
+    try {
+      if (onEdit) {
+        onEdit(tag);
+      }
+    } catch (error) {
+      console.error('Error editing tag:', error);
+      setError('Could not edit the tag. Please try again.');
     }
   };
 
@@ -97,13 +113,11 @@ const TagList = ({ onEdit, onView }) => {
   const actions = [
     { 
       type: 'edit', 
-      emoji: '✏️', 
       label: 'Edit',
-      onClick: onEdit
+      onClick: handleEditTag
     },
     { 
       type: 'delete', 
-      emoji: '🗑️', 
       label: 'Delete',
       onClick: handleDeleteTag
     }
@@ -121,12 +135,10 @@ const TagList = ({ onEdit, onView }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <span className="search-emoji">🔍</span>
           </div>
         </div>
         <div className="list-actions">
           <button className="refresh-button" onClick={fetchTags}>
-            <span className="refresh-emoji">🔄</span>
             Refresh
           </button>
         </div>
@@ -140,7 +152,6 @@ const TagList = ({ onEdit, onView }) => {
           </div>
         ) : error ? (
           <div className="error-container">
-            <span className="error-emoji">❌</span>
             <p>{error}</p>
             <button className="retry-button" onClick={fetchTags}>Try Again</button>
           </div>
@@ -148,7 +159,6 @@ const TagList = ({ onEdit, onView }) => {
           <>
             <div className="list-stats">
               <span className="stats-total">Total: <strong>{tags.length}</strong> tags</span>
-              <span className="stats-filtered">Displayed: <strong>{filteredTags.length}</strong></span>
             </div>
 
             {filteredTags.length > 0 ? (
@@ -160,8 +170,7 @@ const TagList = ({ onEdit, onView }) => {
                 sortConfig={sortConfig}
               />
             ) : (
-              <div className="no-results">
-                <span className="no-results-emoji">😔</span>
+              <div className="no-results">  
                 <p>No tags found matching your search criteria.</p>
               </div>
             )}

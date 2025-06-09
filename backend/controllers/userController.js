@@ -2,7 +2,7 @@
 const userModel = require('../models/userModel');
 
 /**
- * Obține lista de utilizatori
+ * Get list of users
  */
 const getUsers = async (req, res) => {
   try {
@@ -16,13 +16,13 @@ const getUsers = async (req, res) => {
     console.error('Error getting users:', error);
     res.status(500).json({
       success: false,
-      message: 'Eroare la obținerea utilizatorilor'
+      message: 'Error retrieving users'
     });
   }
 };
 
 /**
- * Obține un utilizator după ID
+ * Get user by ID
  */
 const getUserById = async (req, res) => {
   try {
@@ -33,7 +33,7 @@ const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Utilizatorul nu a fost găsit'
+        message: 'User not found'
       });
     }
 
@@ -45,13 +45,13 @@ const getUserById = async (req, res) => {
     console.error('Error getting user by ID:', error);
     res.status(500).json({
       success: false,
-      message: 'Eroare la obținerea utilizatorului'
+      message: 'Error retrieving user'
     });
   }
 };
 
 /**
- * Creează un utilizator nou
+ * Create new user
  */
 const createUser = async (req, res) => {
   try {
@@ -60,11 +60,11 @@ const createUser = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email-ul este obligatoriu'
+        message: 'Email is required'
       });
     }
 
-    // Generăm un ID simplu
+    // Generate a simple ID
     const userId = Date.now().toString();
 
     const userData = {
@@ -79,7 +79,7 @@ const createUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Utilizatorul a fost creat cu succes',
+      message: 'User created successfully',
       data: {
         id: userId,
         ...userData
@@ -89,29 +89,29 @@ const createUser = async (req, res) => {
     console.error('Error creating user:', error);
     res.status(500).json({
       success: false,
-      message: 'Eroare la crearea utilizatorului'
+      message: 'Error creating user'
     });
   }
 };
 
 /**
- * Actualizează un utilizator
+ * Update user
  */
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, bio, interests, profileImage } = req.body;
 
-    // Verifică dacă utilizatorul există
+    // Check if user exists
     const existingUser = await userModel.getUserById(id);
     if (!existingUser) {
       return res.status(404).json({
         success: false,
-        message: 'Utilizatorul nu a fost găsit'
+        message: 'User not found'
       });
     }
 
-    // Construiește obiectul de actualizare
+    // Build update object
     const updateData = {
       ...(name && { name }),
       ...(email && { email }),
@@ -122,36 +122,36 @@ const updateUser = async (req, res) => {
 
     await userModel.updateUser(id, updateData);
 
-    // Obține utilizatorul actualizat
+    // Get updated user
     const updatedUser = await userModel.getUserById(id);
 
     res.status(200).json({
       success: true,
-      message: 'Utilizatorul a fost actualizat cu succes',
+      message: 'User updated successfully',
       data: updatedUser
     });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({
       success: false,
-      message: 'Eroare la actualizarea utilizatorului'
+      message: 'Error updating user'
     });
   }
 };
 
 /**
- * Șterge un utilizator
+ * Delete user
  */
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Verifică dacă utilizatorul există
+    // Check if user exists
     const existingUser = await userModel.getUserById(id);
     if (!existingUser) {
       return res.status(404).json({
         success: false,
-        message: 'Utilizatorul nu a fost găsit'
+        message: 'User not found'
       });
     }
 

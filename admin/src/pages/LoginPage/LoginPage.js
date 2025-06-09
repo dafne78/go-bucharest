@@ -1,57 +1,49 @@
-// /admin/src/pages/Login.js
-import React, { useState } from 'react';
+// /admin/src/pages/LoginPage/LoginPage.js
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiService from '../../services/apiService';
+import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
 import './Login.css';
 
-const Login = () => {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
+const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!credentials.email || !credentials.password) {
-      setError('Please fill in all fields.');
+  useEffect(() => {
+    // Check if already authenticated
+    if (isAuthenticated) {
+      navigate('/');
       return;
     }
-    
-    setLoading(true);
+
+    // Check for token in localStorage
+    const token = localStorage.getItem('admin_auth_token');
+    if (token) {
+      handleLogin(token);
+    }
+  }, []);
+
+  const handleLogin = async (token) => {
     setError('');
-    
+    setLoading(true);
+
     try {
-      // Cerere de autentificare către API
-      const response = await apiService.post('/auth/login', credentials);
-      
-      // Verifică structura răspunsului
-      if (response.success && response.data) {
-        const { token, ...userData } = response.data;
-        
-        // Salvăm token-ul și informațiile utilizatorului
-        authService.login(token, userData);
-        
-        // Redirecționăm către dashboard
+      if (!token) {
+        setError('No authentication token found. Please access the admin panel through the main application.');
+        return;
+      }
+
+      const success = await authService.setToken(token);
+      if (success) {
         navigate('/');
       } else {
-        setError('Invalid response from server.');
+        setError('Authentication failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message || 'Authentication failed. Please check your email and password.');
+    } catch (err) {
+      setError('An error occurred during authentication. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -67,37 +59,19 @@ const Login = () => {
         
         {error && (
           <div className="error-alert">
-            <span className="error-icon"></span>
+            <span className="error-icon">⚠️</span>
             {error}
           </div>
         )}
         
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={credentials.email}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="Enter your email"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={credentials.password}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="Enter your password"
-            />
-          </div>
+        <form className="login-form" onSubmit={(e) => {
+          e.preventDefault();
+          const token = localStorage.getItem('admin_auth_token');
+          handleLogin(token);
+        }}>
+          <p className="login-message">
+            Please access the admin panel through the main application using your admin account.
+          </p>
           
           <button 
             type="submit" 
@@ -107,10 +81,10 @@ const Login = () => {
             {loading ? (
               <>
                 <span className="button-spinner"></span>
-                Signing in...
+                Authenticating...
               </>
             ) : (
-              'Sign In'
+              'Authenticate'
             )}
           </button>
         </form>
@@ -119,4 +93,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

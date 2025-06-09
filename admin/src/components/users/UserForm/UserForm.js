@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 // import userService from '../../../services/userService';
 import './UserForm.css';
 
-const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
+const UserForm = ({ user, onSubmit, onCancel, onDelete, isLoading }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,13 +43,22 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
     // Name validation
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters long';
     }
 
     // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Role validation
+    if (!formData.role) {
+      newErrors.role = 'Role is required';
+    } else if (!['user', 'admin'].includes(formData.role)) {
+      newErrors.role = 'Invalid role selected';
     }
 
     setErrors(newErrors);
@@ -69,7 +78,9 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
       await onSubmit(formData);
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Error handling is managed by the parent component
+      setErrors({
+        submit: error.message || 'Failed to save user. Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -81,6 +92,9 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
         await onDelete(user);
       } catch (error) {
         console.error('Error deleting user:', error);
+        setErrors({
+          submit: error.message || 'Failed to delete user. Please try again.'
+        });
       }
     }
   };
@@ -92,7 +106,6 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="name">
-                <span className="label-emoji">👤</span>
                 Name <span className="required">*</span>
               </label>
               <input
@@ -103,6 +116,7 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
                 onChange={handleChange}
                 className={errors.name ? 'error' : ''}
                 placeholder="Enter user name"
+                disabled={isLoading || isSubmitting}
               />
               {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
@@ -111,7 +125,6 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="email">
-                <span className="label-emoji">📧</span>
                 Email <span className="required">*</span>
               </label>
               <input
@@ -122,6 +135,7 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
                 onChange={handleChange}
                 className={errors.email ? 'error' : ''}
                 placeholder="Enter email address"
+                disabled={isLoading || isSubmitting}
               />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
@@ -130,21 +144,29 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="role">
-                <span className="label-emoji">🏷️</span>
-                Role
+                Role <span className="required">*</span>
               </label>
               <select
                 id="role"
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
+                className={errors.role ? 'error' : ''}
+                disabled={isLoading || isSubmitting}
               >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
               </select>
+              {errors.role && <span className="error-message">{errors.role}</span>}
             </div>
           </div>
         </div>
+
+        {errors.submit && (
+          <div className="form-error">
+            {errors.submit}
+          </div>
+        )}
         
         <div className="form-actions">
           {user && onDelete && (
@@ -152,9 +174,8 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
               type="button" 
               className="delete-button" 
               onClick={handleDelete}
-              disabled={isSubmitting}
+              disabled={isLoading || isSubmitting}
             >
-              <span className="button-emoji">🗑️</span>
               Delete User
             </button>
           )}
@@ -164,26 +185,22 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete }) => {
               type="button" 
               className="cancel-button" 
               onClick={onCancel}
-              disabled={isSubmitting}
+              disabled={isLoading || isSubmitting}
             >
-              <span className="button-emoji">❌</span>
               Cancel
             </button>
             <button 
               type="submit" 
               className="submit-button"
-              disabled={isSubmitting}
+              disabled={isLoading || isSubmitting}
             >
-              {isSubmitting ? (
+              {isLoading || isSubmitting ? (
                 <>
                   <span className="button-spinner"></span>
                   Saving...
                 </>
               ) : (
-                <>
-                  <span className="button-emoji">{user ? '💾' : '👤'}</span>
-                  {user ? 'Update User' : 'Add User'}
-                </>
+                user ? 'Update User' : 'Add User'
               )}
             </button>
           </div>

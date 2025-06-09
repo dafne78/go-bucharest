@@ -3,45 +3,30 @@
   width: 100%;
 }
 
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
 .search-filter {
   display: flex;
   gap: var(--spacing-md);
-  flex: 1;
   align-items: center;
-  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .search-box {
   position: relative;
-  flex: 1;
-  max-width: 350px;
-  min-width: 200px;
+  width: 250px;
 }
 
 .search-input {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  padding-right: 45px;
-  border-radius: 25px;
-  border: 2px solid var(--border);
-  background-color: var(--surface);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-size: 0.95rem;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: #007bff;
 }
 
 .search-emoji {
@@ -59,25 +44,24 @@
 }
 
 .filter-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  background-color: var(--surface);
-  border: 2px solid var(--border);
-  color: var(--text-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
+  padding: 8px 16px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.9rem;
-  font-weight: 500;
 }
 
-.filter-button:hover,
+.filter-button:hover {
+  border-color: #00c4ae;
+  color: #00c4ae;
+}
+
 .filter-button.active {
-  border-color: var(--primary);
-  background-color: rgba(0, 123, 255, 0.05);
-  color: var(--primary);
+  background-color: #00c4ae;
+  color: #fff;
+  border-color: #00c4ae;
 }
 
 .filter-emoji {
@@ -87,63 +71,32 @@
 .filter-menu {
   position: absolute;
   top: 100%;
-  left: 0;
   right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-lg);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   z-index: 10;
   margin-top: 4px;
-  padding: var(--spacing-sm);
+  min-width: 200px;
 }
 
 .filter-option {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 8px 16px;
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
   transition: background-color 0.2s;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
 
 .filter-option:hover {
-  background-color: rgba(0, 123, 255, 0.1);
+  background-color: #f8f9fa;
 }
 
 .filter-option.active {
-  background-color: var(--primary);
-  color: white;
+  background-color: #00c4ae;
+  color: #fff;
 }
 
-.list-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.refresh-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  background-color: var(--surface);
-  border: 2px solid var(--border);
-  color: var(--text-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
-  transition: all 0.2s;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.refresh-button:hover {
-  border-color: var(--primary);
-  background-color: rgba(0, 123, 255, 0.05);
-  color: var(--primary);
-  transform: translateY(-1px);
-}
 
 .refresh-emoji {
   font-size: 1rem;
@@ -152,26 +105,6 @@
 
 .refresh-button:hover .refresh-emoji {
   transform: rotate(180deg);
-}
-
-.list-content {
-  background-color: var(--surface);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.list-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, rgba(0, 123, 255, 0.05) 0%, rgba(0, 123, 255, 0.02) 100%);
-  font-size: 0.9rem;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
 }
 
 .stats-left {
@@ -309,25 +242,6 @@
   flex-shrink: 0;
 }
 
-.cost-display {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-weight: 600;
-}
-
-.cost-emoji {
-  font-size: 1rem;
-}
-
-.cost-free {
-  color: var(--success, #28a745);
-}
-
-.cost-paid {
-  color: var(--primary);
-}
-
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -338,18 +252,6 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.status-badge.upcoming {
-  background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(23, 162, 184, 0.05) 100%);
-  color: var(--info, #17a2b8);
-  border: 1px solid rgba(23, 162, 184, 0.2);
-}
-
-.status-badge.completed {
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0.05) 100%);
-  color: var(--success, #28a745);
-  border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
 .status-emoji {
@@ -412,28 +314,6 @@
   color: var(--text-primary);
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl);
-  color: var(--text-secondary);
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(0, 123, 255, 0.1);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: var(--spacing-lg);
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 
 .loading-text {
   font-size: 1rem;
@@ -446,43 +326,11 @@
   font-size: 1.2rem;
 }
 
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl);
-  text-align: center;
-}
-
-.error-emoji {
-  font-size: 4rem;
-  margin-bottom: var(--spacing-lg);
-}
 
 .error-text {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-lg);
   line-height: 1.5;
-}
-
-.retry-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-
-.retry-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
 }
 
 .retry-emoji {

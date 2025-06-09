@@ -8,140 +8,167 @@ import authService from '../../services/authService';
 import './TagsPage.css';
 
 const TagsPage = () => {
-  // Get user from auth service
   const [user, setUser] = useState(authService.getUser());
-
+  const [tags, setTags] = useState([]);
   const [activeView, setActiveView] = useState('list');
   const [selectedTag, setSelectedTag] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  
-  // Check authentication on component mount
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTag, setEditingTag] = useState(null);
+
   useEffect(() => {
     if (!authService.isAuthenticated()) {
-      // Redirect to login if not authenticated
       window.location.href = '/login';
       return;
     }
-    
-    // Update user state
+
     const currentUser = authService.getUser();
     setUser(currentUser);
-    console.log('Current user in EventsPage:', currentUser);
+    console.log('Current user in TagsPage:', currentUser);
+
+    fetchTags();
   }, []);
 
+  const fetchTags = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await tagService.getAllTags();
+      if (response.success) {
+        setTags(response.data || []);
+      } else {
+        throw new Error(response.message || 'Failed to load tags');
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      setError('Failed to load tags');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddTag = () => {
-    setSelectedTag(null);
-    setActiveView('add');
+    setEditingTag(null);
+    setIsModalOpen(true);
   };
 
   const handleEditTag = (tag) => {
-    setSelectedTag(tag);
-    setActiveView('edit');
+    setEditingTag(tag);
+    setIsModalOpen(true);
   };
 
-  const handleCloseForm = () => {
-    setActiveView('list');
-    setSelectedTag(null);
-    setError(null);
-  };
-
-  const handleSaveTag = async (tagData) => {
+  const handleSubmit = async (tagData) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      if (selectedTag) {
-        // Update existing tag
-        await tagService.updateTag(selectedTag.id, tagData);
-        setSuccessMessage('Tag updated successfully!');
+      let updatedTags;
+      if (editingTag) {
+        await tagService.updateTag(editingTag._id, tagData);
+        updatedTags = tags.map(tag =>
+          tag._id === editingTag._id
+            ? { ...tag, ...tagData }
+            : tag
+        );
       } else {
-        // Add new tag
-        await tagService.createTag(tagData);
-        setSuccessMessage('Tag added successfully!');
+        const newTag = await tagService.createTag(tagData);
+        updatedTags = [...tags, newTag.data || newTag];
       }
-      
-      // Show success message
-      setShowSuccess(true);
-      
-      // Close success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-      
-      // Return to list
+      setTags(updatedTags);
+      setIsModalOpen(false);
+      showSuccessMessage(editingTag ? 'Tag updated successfully!' : 'Tag created successfully!');
       setActiveView('list');
     } catch (error) {
       console.error('Error saving tag:', error);
-      setError(error.message || 'Could not save the tag. Please try again.');
+      setError(error.message || 'Failed to save tag');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const handleLogout = () => {
-    if (authService.logout) {
-      authService.logout();
-    }
-    window.location.href = '/login';
+
+  // Show success message with auto-hide
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      setSuccessMessage(''); 
+    }, 3000);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTag(null);
+    setError('');
   };
 
   return (
     <div className="tags-page">
-      <Header title="Tags Management" 
-      user={user}
-      onLogout={handleLogout} 
-  />
-      
+      <Header
+        title="Tags Management"
+        handleAdd={handleAddTag}
+        handleAddText="Add New Tag"
+      />
+
+      {/* Success Message Display */}
       {showSuccess && (
-        <div className="success-alert">
-          <span className="success-icon">✅</span>
-          {successMessage}
-          <button className="close-alert" onClick={() => setShowSuccess(false)}>×</button>
+        <div className="success-message-container">
+          <p className="success-message">{successMessage}</p>
         </div>
       )}
-      
-      <div className="page-actions">
-        {activeView === 'list' && (
-          <button className="add-button" onClick={handleAddTag}>
-            <span className="add-emoji">➕</span>
-            Add Tag
-          </button>
-        )}
-      </div>
-      
-      <div className="tags-content">
-        {activeView === 'list' && (
-          <TagList onEdit={handleEditTag} />
-        )}
-        
-        {(activeView === 'add' || activeView === 'edit') && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h2>{activeView === 'add' ? 'Add Tag' : 'Edit Tag'}</h2>
-                <button className="close-button" onClick={handleCloseForm}>×</button>
-              </div>
-              
-              {error && (
-                <div className="error-alert modal-error">
-                  <span className="error-icon">❌</span>
-                  {error}
+
+      {error && (
+        <div className="error-message-container">
+          <p className="error-message">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading tags...</p>
+        </div>
+      ) : (
+        <div className="tags-content">
+          {activeView === 'list' && (
+            <>
+              {tags.length === 0 && !loading && (
+                <div className="empty-state">
+                  <p>No tags found.</p>
                 </div>
               )}
-              
-              <TagForm 
-                tag={selectedTag} 
-                onSubmit={handleSaveTag} 
-                onCancel={handleCloseForm}
-                isLoading={isLoading}
-              />
+
+              {tags.length > 0 && (
+                <TagList
+                  tags={tags}
+                  onEdit={handleEditTag}
+                />
+              )}
+            </>
+          )}
+          {isModalOpen && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h2>
+                    {editingTag ? 'Edit Tag' : 'Add New Tag'}
+                  </h2>
+                  <button className="close-button" onClick={closeModal}>×</button>
+                </div>
+                <TagForm
+                  tag={editingTag}
+                  onSubmit={handleSubmit}
+                  onCancel={closeModal}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

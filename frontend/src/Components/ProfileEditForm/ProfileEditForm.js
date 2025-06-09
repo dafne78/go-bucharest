@@ -4,26 +4,26 @@ import './ProfileEditForm.css';
 import { FaSave, FaTimes } from 'react-icons/fa';
 
 const ProfileEditForm = ({ user, onSave, onCancel }) => {
-  // Preluăm interesele din categoriile de evenimente
+  // Get interests from event categories
   const categoryTags = event_categories.reduce((allTags, category) => {
     return [...allTags, ...category.tags];
   }, []);
 
-  // Eliminarea duplicatelor și capitalizarea primei litere
+  // Remove duplicates and capitalize first letter
   const uniqueTags = [...new Set(categoryTags)].map(
     tag => tag.charAt(0).toUpperCase() + tag.slice(1)
   );
 
-  // State-uri pentru câmpurile formularului
+  // States for form fields
   const [formData, setFormData] = useState({
     name: user.name || '',
     email: user.email || '',
     bio: user.bio || '',
     interests: [...user.interests] || [],
-    newInterest: '' // Pentru a adăuga interese personalizate
+    newInterest: '' // For adding custom interests
   });
 
-  // Gestionare schimbări în câmpuri
+  // Handle field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -32,7 +32,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
     });
   };
 
-  // Gestionare checkbox-uri pentru interese
+  // Handle checkbox-es for interests
   const handleInterestToggle = (interest) => {
     let updatedInterests;
     if (formData.interests.includes(interest)) {
@@ -47,7 +47,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
     });
   };
 
-  // Adăugare interes personalizat
+  // Add custom interest
   const handleAddInterest = () => {
     if (formData.newInterest.trim() && !formData.interests.includes(formData.newInterest.trim())) {
       setFormData({
@@ -58,7 +58,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
     }
   };
 
-  // Eliminare interes
+  // Remove interest
   const handleRemoveInterest = (interest) => {
     setFormData({
       ...formData,
@@ -66,7 +66,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
     });
   };
 
-  // Gestionare apăsare Enter pentru adăugare interes nou
+  // Handle Enter key press for adding new interest
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -74,7 +74,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
     }
   };
 
-  // Gestionare submit formular
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
@@ -85,7 +85,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
       <h2 className="form-title">Edit Your Profile</h2>
       
       <form onSubmit={handleSubmit} className="profile-edit-form">
-        {/* Nume */}
+        {/* Name */}
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input
@@ -114,7 +114,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
           <small className="form-text">Your email will not be displayed publicly</small>
         </div>
         
-        {/* Bio/Descriere */}
+        {/* Bio/Description */}
         <div className="form-group">
           <label htmlFor="bio">Bio</label>
           <textarea
@@ -128,7 +128,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
           ></textarea>
         </div>
         
-        {/* Interese selectate */}
+        {/* Selected interests */}
         <div className="form-group">
           <label>Your Interests</label>
           <div className="selected-interests">
@@ -153,7 +153,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
           </div>
         </div>
         
-        {/* Adăugare interes personalizat */}
+        {/* Add custom interest */}
         <div className="form-group">
           <label htmlFor="newInterest">Add Custom Interest</label>
           <div className="add-interest-group">
@@ -178,7 +178,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
           </div>
         </div>
         
-        {/* Selecție interese din categorii */}
+        {/* Select interests from categories */}
         <div className="form-group">
           <label>Select from Popular Interests</label>
           <div className="interests-options">
@@ -199,7 +199,7 @@ const ProfileEditForm = ({ user, onSave, onCancel }) => {
           </div>
         </div>
         
-        {/* Butoane acțiuni */}
+        {/* Action buttons */}
         <div className="form-actions">
           <button type="button" onClick={onCancel} className="cancel-btn">
             <FaTimes /> Cancel

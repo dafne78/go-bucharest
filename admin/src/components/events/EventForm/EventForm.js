@@ -4,17 +4,19 @@ import eventService from '../../../services/eventsService';
 import categoryService from '../../../services/categoryService';
 import locationService from '../../../services/locationService';
 import imageService from '../../../services/imageService';
+import tagService from '../../../services/tagService';
 import './EventForm.css';
 
-const EventForm = ({ event, onSubmit, onCancel }) => {
+const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
     date: '',
     time: '',
     cost: '',
     image: null,
     categories: [],
+    tags: [],
     location: {
       exact: '',
       zone: '',
@@ -22,54 +24,81 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       longitude: ''
     }
   });
-  
   const [availableCategories, setAvailableCategories] = useState([]);
   const [availableZones, setAvailableZones] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
   const [previewImage, setPreviewImage] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() => {
     fetchData();
+    console.log(event);
   }, []);
 
   useEffect(() => {
     if (event) {
       setFormData({
-        name: event.name || '',
+        title: event.title || '',
         description: event.description || '',
-        date: event.date || '',
+        date: event.date ? event.date.split('T')[0] : '',
         time: event.time || '',
         cost: event.cost || '',
         categories: event.categories || [],
+        tags: event.tags || [],
         location: {
           exact: event.location?.exact || '',
           zone: event.location?.zone || '',
           latitude: event.location?.latitude || '',
           longitude: event.location?.longitude || ''
         },
-        image: null // Don't load existing image, just show preview
+        image: null
       });
       
       setPreviewImage(event.image || '');
+    } else {
+      // Reset form when adding new event
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        cost: '',
+        image: null,
+        categories: [],
+        tags: [],
+        location: {
+          exact: '',
+          zone: '',
+          latitude: '',
+          longitude: ''
+        }
+      });
+      setPreviewImage('');
     }
   }, [event]);
 
   const fetchData = async () => {
-    setIsLoading(true);
+    setIsLoadingData(true);
     try {
-      const [categoriesResponse, zonesResponse] = await Promise.all([
+      const [categoriesResponse, zonesResponse, tagsResponse] = await Promise.all([
         categoryService.getAllCategories(),
-        locationService.getAllLocations()
+        locationService.getAllLocations(),
+        tagService.getAllTags()
       ]);
       
       setAvailableCategories(categoriesResponse.data || []);
       setAvailableZones(zonesResponse.data || []);
+      setAvailableTags(tagsResponse.data || []);
     } catch (error) {
       console.error('Error fetching form data:', error);
+      setErrors(prev => ({
+        ...prev,
+        fetch: 'Failed to load form data. Please refresh the page.'
+      }));
     } finally {
-      setIsLoading(false);
+      setIsLoadingData(false);
     }
   };
 
@@ -92,7 +121,6 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       }));
     }
 
-    // Clear errors when field changes
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -109,11 +137,18 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
     }));
   };
 
+  const handleTagsChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData(prev => ({
+      ...prev,
+      tags: selectedOptions
+    }));
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setErrors(prev => ({
         ...prev,
@@ -122,7 +157,6 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       return;
     }
     
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       setErrors(prev => ({
         ...prev,
@@ -131,13 +165,11 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       return;
     }
     
-    // Update form data
     setFormData(prev => ({
       ...prev,
       image: file
     }));
     
-    // Clear image errors
     if (errors.image) {
       setErrors(prev => ({
         ...prev,
@@ -145,7 +177,6 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       }));
     }
     
-    // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       setPreviewImage(reader.result);
@@ -156,38 +187,30 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
   const validate = () => {
     const newErrors = {};
     
-    // Required fields validation
-    if (!formData.name.trim()) {
-      newErrors.name = 'Event name is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
     }
     
     if (!formData.date) {
-      newErrors.date = 'Event date is required';
-    } else {
-      // Check if date is in the past
-      const eventDate = new Date(formData.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (eventDate < today) {
-        newErrors.date = 'Event date cannot be in the past';
-      }
+      newErrors.date = 'Date is required';
     }
     
     if (!formData.time) {
-      newErrors.time = 'Event time is required';
+      newErrors.time = 'Time is required';
     }
     
     if (!formData.location.zone) {
       newErrors['location.zone'] = 'Zone is required';
     }
     
-    // Cost validation
     if (formData.cost && (isNaN(formData.cost) || formData.cost < 0)) {
       newErrors.cost = 'Cost must be a valid positive number';
     }
     
-    // Coordinates validation (if provided)
     if (formData.location.latitude && (isNaN(formData.location.latitude) || Math.abs(formData.location.latitude) > 90)) {
       newErrors['location.latitude'] = 'Latitude must be between -90 and 90';
     }
@@ -210,14 +233,14 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
     setIsSubmitting(true);
     
     try {
-      // Prepare data for submission
       const eventData = {
-        name: formData.name.trim(),
+        title: formData.title.trim(),
         description: formData.description.trim(),
         date: formData.date,
         time: formData.time,
         cost: formData.cost ? parseFloat(formData.cost) : 0,
         categories: formData.categories,
+        tags: formData.tags,
         location: {
           exact: formData.location.exact.trim(),
           zone: formData.location.zone,
@@ -244,18 +267,30 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       await onSubmit(eventData);
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Error handling is managed by the parent component
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to save event. Please try again.'
+      }));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+  const handleDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete event "${formData.title}"?`)) {
+      try {
+        await onDelete(event);
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        setErrors(prev => ({
+          ...prev,
+          submit: error.message || 'Failed to delete event. Please try again.'
+        }));
+      }
+    }
   };
 
-  if (isLoading) {
+  if (isLoadingData) {
     return (
       <div className="event-form-container">
         <div className="loading-container">
@@ -269,72 +304,50 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
   return (
     <div className="event-form-container">
       <form className="event-form" onSubmit={handleSubmit}>
-        {/* Basic Information Section */}
         <div className="form-section">
-          <div className="section-header">
-            <span className="section-emoji">📝</span>
-            <h3 className="section-title">Basic Information</h3>
-          </div>
-          
+          <h3>Event Details</h3>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="name">
-                <span className="label-emoji">🎉</span>
-                Event Name <span className="required">*</span>
+              <label htmlFor="title">
+                Title <span className="required">*</span>
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
+                id="title"
+                name="title"
                 value={formData.name}
                 onChange={handleChange}
-                className={errors.name ? 'error' : ''}
-                placeholder="Enter event name"
-                maxLength="100"
+                className={errors.title ? 'error' : ''}
+                placeholder="Enter event title"
+                disabled={isLoading || isSubmitting}
               />
-              {errors.name && (
-                <span className="error-message">
-                  <span className="error-emoji">❌</span>
-                  {errors.name}
-                </span>
-              )}
+              {errors.title && <span className="error-message">{errors.title}</span>}
             </div>
           </div>
-          
-          <div className="form-row single">
-            <div className="form-group full-width">
+
+          <div className="form-row">
+            <div className="form-group">
               <label htmlFor="description">
-                <span className="label-emoji">📄</span>
-                Description
+                Description <span className="required">*</span>
               </label>
               <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe your event..."
-                maxLength="1000"
+                className={errors.description ? 'error' : ''}
+                placeholder="Enter event description"
+                rows="4"
+                disabled={isLoading || isSubmitting}
               />
-              <small className="help-text">
-                <span className="help-emoji">💡</span>
-                Provide a detailed description of your event
-              </small>
+              {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
           </div>
-        </div>
 
-        {/* Date & Time Section */}
-        <div className="form-section">
-          <div className="section-header">
-            <span className="section-emoji">📅</span>
-            <h3 className="section-title">Date & Time</h3>
-          </div>
-          
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">
-                <span className="label-emoji">📅</span>
-                Event Date <span className="required">*</span>
+                Date <span className="required">*</span>
               </label>
               <input
                 type="date"
@@ -343,20 +356,14 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                 value={formData.date}
                 onChange={handleChange}
                 className={errors.date ? 'error' : ''}
-                min={getTodayDate()}
+                disabled={isLoading || isSubmitting}
               />
-              {errors.date && (
-                <span className="error-message">
-                  <span className="error-emoji">❌</span>
-                  {errors.date}
-                </span>
-              )}
+              {errors.date && <span className="error-message">{errors.date}</span>}
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="time">
-                <span className="label-emoji">⏰</span>
-                Event Time <span className="required">*</span>
+                Time <span className="required">*</span>
               </label>
               <input
                 type="time"
@@ -365,22 +372,15 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                 value={formData.time}
                 onChange={handleChange}
                 className={errors.time ? 'error' : ''}
+                disabled={isLoading || isSubmitting}
               />
-              {errors.time && (
-                <span className="error-message">
-                  <span className="error-emoji">❌</span>
-                  {errors.time}
-                </span>
-              )}
+              {errors.time && <span className="error-message">{errors.time}</span>}
             </div>
           </div>
-          
+
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="cost">
-                <span className="label-emoji">💰</span>
-                Cost
-              </label>
+              <label htmlFor="cost">Cost</label>
               <div className="cost-input-container">
                 <input
                   type="number"
@@ -392,143 +392,63 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                   placeholder="0"
                   min="0"
                   step="0.01"
+                  disabled={isLoading || isSubmitting}
                 />
                 <span className="currency-symbol">RON</span>
               </div>
-              {errors.cost && (
-                <span className="error-message">
-                  <span className="error-emoji">❌</span>
-                  {errors.cost}
-                </span>
-              )}
-              <small className="help-text">
-                <span className="help-emoji">💡</span>
-                Leave empty or 0 for free events
-              </small>
+              {errors.cost && <span className="error-message">{errors.cost}</span>}
+              <small className="help-text">Leave empty or 0 for free events</small>
             </div>
           </div>
         </div>
 
-        {/* Location Section */}
         <div className="form-section">
-          <div className="section-header">
-            <span className="section-emoji">📍</span>
-            <h3 className="section-title">Location</h3>
-          </div>
-          
-          <div className="location-container">
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="location.exact">
-                  <span className="label-emoji">🏢</span>
-                  Venue/Address
-                </label>
-                <input
-                  type="text"
-                  id="location.exact"
-                  name="location.exact"
-                  value={formData.location.exact}
-                  onChange={handleChange}
-                  placeholder="Enter venue name or address"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="location.zone">
-                  <span className="label-emoji">🗺️</span>
-                  Zone <span className="required">*</span>
-                </label>
-                <select
-                  id="location.zone"
-                  name="location.zone"
-                  value={formData.location.zone}
-                  onChange={handleChange}
-                  className={errors['location.zone'] ? 'error' : ''}
-                >
-                  <option value="">Select a zone</option>
-                  {availableZones.map(zone => (
-                    <option key={zone.id} value={zone.id}>
-                      {zone.name}
-                    </option>
-                  ))}
-                </select>
-                {errors['location.zone'] && (
-                  <span className="error-message">
-                    <span className="error-emoji">❌</span>
-                    {errors['location.zone']}
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="coordinates-row">
-              <div className="form-group">
-                <label htmlFor="location.latitude">
-                  <span className="label-emoji">🧭</span>
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  id="location.latitude"
-                  name="location.latitude"
-                  value={formData.location.latitude}
-                  onChange={handleChange}
-                  className={errors['location.latitude'] ? 'error' : ''}
-                  placeholder="44.4268"
-                  step="any"
-                />
-                {errors['location.latitude'] && (
-                  <span className="error-message">
-                    <span className="error-emoji">❌</span>
-                    {errors['location.latitude']}
-                  </span>
-                )}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="location.longitude">
-                  <span className="label-emoji">🧭</span>
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  id="location.longitude"
-                  name="location.longitude"
-                  value={formData.location.longitude}
-                  onChange={handleChange}
-                  className={errors['location.longitude'] ? 'error' : ''}
-                  placeholder="26.1025"
-                  step="any"
-                />
-                {errors['location.longitude'] && (
-                  <span className="error-message">
-                    <span className="error-emoji">❌</span>
-                    {errors['location.longitude']}
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <small className="help-text">
-              <span className="help-emoji">💡</span>
-              Coordinates are optional but help with map integration
-            </small>
-          </div>
-        </div>
-
-        {/* Categories & Image Section */}
-        <div className="form-section">
-          <div className="section-header">
-            <span className="section-emoji">🎨</span>
-            <h3 className="section-title">Categories & Media</h3>
-          </div>
-          
+          <h3>Location</h3>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="categories">
-                <span className="label-emoji">📂</span>
-                Event Categories
+              <label htmlFor="location.exact">Venue/Address</label>
+              <input
+                type="text"
+                id="location.exact"
+                name="location.exact"
+                value={formData.location.exact}
+                onChange={handleChange}
+                placeholder="Enter venue name or address"
+                disabled={isLoading || isSubmitting}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="location.zone">
+                Zone <span className="required">*</span>
               </label>
+              <select
+                id="location.zone"
+                name="location.zone"
+                value={formData.location.zone}
+                onChange={handleChange}
+                className={errors['location.zone'] ? 'error' : ''}
+                disabled={isLoading || isSubmitting}
+              >
+                <option value="">Select a zone</option>
+                {availableZones.map(zone => (
+                  <option key={zone.id} value={zone.id}>
+                    {zone.name}
+                  </option>
+                ))}
+              </select>
+              {errors['location.zone'] && <span className="error-message">{errors['location.zone']}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Categories & Tags</h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="categories">Categories</label>
               <select
                 id="categories"
                 name="categories"
@@ -536,6 +456,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                 value={formData.categories}
                 onChange={handleCategoriesChange}
                 className="categories-select"
+                disabled={isLoading || isSubmitting}
               >
                 {availableCategories.map(category => (
                   <option key={category.id} value={category.id}>
@@ -543,26 +464,41 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                   </option>
                 ))}
               </select>
-              <small className="help-text">
-                <span className="help-emoji">💡</span>
-                Hold CTRL/CMD to select multiple categories
-              </small>
+              <small className="help-text">Hold CTRL/CMD to select multiple categories</small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="tags">Tags</label>
+              <select
+                id="tags"
+                name="tags"
+                multiple
+                value={formData.tags}
+                onChange={handleTagsChange}
+                className="tags-select"
+                disabled={isLoading || isSubmitting}
+              >
+                {availableTags.map(tag => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </option>
+                ))}
+              </select>
+              <small className="help-text">Hold CTRL/CMD to select multiple tags</small>
             </div>
           </div>
-          
-          <div className="form-row single">
-            <div className="form-group full-width">
-              <label htmlFor="image">
-                <span className="label-emoji">🖼️</span>
-                Event Image
-              </label>
+        </div>
+
+        <div className="form-section">
+          <h3>Event Image</h3>
+          <div className="form-row">
+            <div className="form-group">
               <div className="image-upload-container">
                 <div className="image-preview">
                   {previewImage ? (
                     <img src={previewImage} alt="Event preview" />
                   ) : (
                     <div className="image-placeholder">
-                      <span className="placeholder-emoji">🖼️</span>
                       <span className="placeholder-text">No image selected</span>
                     </div>
                   )}
@@ -574,55 +510,61 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
                   name="image"
                   accept="image/*"
                   onChange={handleImageChange}
+                  disabled={isLoading || isSubmitting}
                 />
                 <label htmlFor="image" className="upload-button">
-                  <span className="upload-emoji">{previewImage ? '🔄' : '📤'}</span>
                   {previewImage ? 'Change Image' : 'Upload Image'}
                 </label>
                 
-                {errors.image && (
-                  <span className="error-message">
-                    <span className="error-emoji">❌</span>
-                    {errors.image}
-                  </span>
-                )}
+                {errors.image && <span className="error-message">{errors.image}</span>}
                 
-                <small className="help-text">
-                  <span className="help-emoji">💡</span>
-                  Supported formats: JPG, PNG, GIF. Max size: 5MB
-                </small>
+                <small className="help-text">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
               </div>
             </div>
           </div>
         </div>
+
+        {errors.submit && (
+          <div className="form-error">
+            {errors.submit}
+          </div>
+        )}
         
         <div className="form-actions">
-          <button 
-            type="button" 
-            className="cancel-button" 
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            <span className="button-emoji">❌</span>
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            className="submit-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <span className="button-spinner"></span>
-                Saving...
-              </>
-            ) : (
-              <>
-                <span className="button-emoji">{event ? '💾' : '🎉'}</span>
-                {event ? 'Update Event' : 'Create Event'}
-              </>
-            )}
-          </button>
+        {event && onDelete && (
+            <button 
+              type="button" 
+              className="delete-button" 
+              onClick={handleDelete}
+              disabled={isLoading || isSubmitting}
+            >
+              Delete Event
+            </button>
+          )}
+          <div className="form-actions-right">
+            <button 
+              type="button" 
+              className="cancel-button" 
+              onClick={onCancel}
+              disabled={isLoading || isSubmitting}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="submit-button"
+              disabled={isLoading || isSubmitting}
+            >
+              {isLoading || isSubmitting ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Saving...
+                </>
+              ) : (
+                event ? 'Update Event' : 'Create Event'
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </div>

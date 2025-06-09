@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaCalendarAlt, FaHistory, FaEdit, FaStar, FaUserShield } from 'react-icons/fa';
 import EventCard from '../EventCard/EventCard';
 import ProfileEditForm from '../ProfileEditForm/ProfileEditForm';
@@ -10,6 +10,7 @@ import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("info");
   const [date, setDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -128,6 +129,15 @@ const Profile = () => {
     }
   };
 
+  const handleAdminPanelClick = (e) => {
+    e.preventDefault();
+    const token = authService.getToken();
+    if (token) {
+      // Navigate to admin panel with token in URL
+      window.location.href = `http://localhost:3001/admin?token=${encodeURIComponent(token)}`;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -179,9 +189,18 @@ const Profile = () => {
           <div className="profile-info-section">
             <div className="profile-header">
               <h1>{userData.name}</h1>
-              <button className="edit-profile-button" onClick={handleEditClick}>
-                <FaEdit /> Edit Profile
-              </button>
+              <div className="profile-actions">
+                {isAdmin && (
+                  <a href="http://localhost:3001/admin" 
+                     className="admin-panel-button"
+                     onClick={handleAdminPanelClick}>
+                    <FaUserShield /> Admin Panel
+                  </a>
+                )}
+                <button className="edit-profile-button" onClick={handleEditClick}>
+                  <FaEdit /> Edit Profile
+                </button>
+              </div>
             </div>
 
             {isEditing ? (

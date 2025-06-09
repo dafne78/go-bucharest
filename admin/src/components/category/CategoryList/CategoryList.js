@@ -4,41 +4,11 @@ import categoryService from '../../../services/categoryService';
 import Table from '../../common/Table/Table';
 import './CategoryList.css';
 
-const CategoryList = ({ onEdit, onView }) => {
-  const [categories, setCategories] = useState([]);
-  const [tags, setTags] = useState([]);
+const CategoryList = ({ onEdit, onView, categories, tags, setCategories, fetchCategories }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'category_name', direction: 'asc' });
-
-  useEffect(() => {
-    fetchCategories();
-    fetchTags();
-  }, []);
-
-  const fetchCategories = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await categoryService.getAllCategories();
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      setError('Could not load categories. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTags = async () => {
-    try {
-      const response = await categoryService.getAllTags();
-      setTags(response.data);
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-    }
-  };
 
   const handleDeleteCategory = async (category) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
@@ -91,22 +61,6 @@ const CategoryList = ({ onEdit, onView }) => {
 
   const columns = [
     { 
-      header: 'Image', 
-      accessor: 'category_image',
-      render: (value) => (
-        <div className="category-thumbnail">
-          {value ? (
-            <img src={value} alt="Category thumbnail" />
-          ) : (
-            <div className="no-image">
-              <span className="no-image-emoji">🖼️</span>
-              <span className="no-image-text">No image</span>
-            </div>
-          )}
-        </div>
-      )
-    },
-    { 
       header: 'Name', 
       accessor: 'category_name',
       sortable: true
@@ -118,12 +72,10 @@ const CategoryList = ({ onEdit, onView }) => {
         const tagNames = getTagNames(value);
         return tagNames ? (
           <div className="tags-display">
-            <span className="tags-emoji">🏷️</span>
             {tagNames}
           </div>
         ) : (
           <div className="no-tags">
-            <span className="no-tags-emoji">🚫</span>
             No tags
           </div>
         );
@@ -134,19 +86,16 @@ const CategoryList = ({ onEdit, onView }) => {
   const actions = [
     { 
       type: 'view', 
-      emoji: '👁️', 
-      label: 'View Details',
+      label: 'View',
       onClick: onView
     },
     { 
       type: 'edit', 
-      emoji: '✏️', 
       label: 'Edit',
       onClick: onEdit
     },
     { 
       type: 'delete', 
-      emoji: '🗑️', 
       label: 'Delete',
       onClick: handleDeleteCategory
     }
@@ -155,6 +104,11 @@ const CategoryList = ({ onEdit, onView }) => {
   return (
     <div className="category-list">
       <div className="list-header">
+        <div className="list-actions">
+            <button className="refresh-button" onClick={fetchCategories}>
+              Refresh
+            </button>
+          </div>
         <div className="search-filter">
           <div className="search-box">
             <input
@@ -164,36 +118,19 @@ const CategoryList = ({ onEdit, onView }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <span className="search-emoji">🔍</span>
           </div>
-        </div>
-        <div className="list-actions">
-          <button className="refresh-button" onClick={fetchCategories}>
-            <span className="refresh-emoji">🔄</span>
-            Refresh
-          </button>
         </div>
       </div>
 
-      <div className="list-content">
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading categories...</p>
-          </div>
-        ) : error ? (
-          <div className="error-container">
-            <span className="error-emoji">❌</span>
-            <p>{error}</p>
-            <button className="retry-button" onClick={fetchCategories}>Try Again</button>
-          </div>
-        ) : (
+      {error ? (
+        <div className="error-container">
+          <p className="error-text">{error}</p>
+          <button className="retry-button" onClick={fetchCategories}>
+            Try Again
+          </button>
+        </div>
+      ) : (
           <>
-            <div className="list-stats">
-              <span className="stats-total">Total: <strong>{categories.length}</strong> categories</span>
-              <span className="stats-filtered">Displayed: <strong>{filteredCategories.length}</strong></span>
-            </div>
-
             {filteredCategories.length > 0 ? (
               <Table 
                 columns={columns} 
@@ -211,7 +148,6 @@ const CategoryList = ({ onEdit, onView }) => {
           </>
         )}
       </div>
-    </div>
   );
 };
 

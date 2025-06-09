@@ -1,8 +1,7 @@
-
 .sidebar {
   width: 250px;
   height: 100vh;
-  background: linear-gradient(to bottom, var(--primary-dark), var(--primary));
+  background: linear-gradient(to bottom, #00c4ae, #1da193);
   color: white;
   position: fixed;
   left: 0;
@@ -18,14 +17,53 @@
   padding: var(--spacing-lg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
 .sidebar-header h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+  color: white;
+}
+
+.sidebar-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.sidebar-user {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-greeting {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.loading-text {
+  display: inline-block;
+  position: relative;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-text::after {
+  content: '...';
+  position: absolute;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { content: '.'; }
+  33% { content: '..'; }
+  66% { content: '...'; }
 }
 
 .sidebar-toggle {
@@ -79,7 +117,7 @@
 .sidebar-nav li.active a {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  border-left: 4px solid var(--secondary-light, #ffd700);
+  border-left: 4px solid #ffd700;
 }
 
 .sidebar-divider {
@@ -145,4 +183,18 @@
   color: rgba(255, 255, 255, 0.6);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: block;
+  }
 }

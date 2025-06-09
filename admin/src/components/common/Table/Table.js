@@ -16,7 +16,7 @@ const Table = ({ columns, data, actions, onSort, sortConfig = {} }) => {
     
     return (
       <span className={`sort-indicator ${sortConfig.direction}`}>
-        {sortConfig.direction === 'asc' ? '⬆️' : '⬇️'}
+        {sortConfig.direction === 'asc' ? '⬆' : '⬇'}
       </span>
     );
   };
@@ -58,7 +58,7 @@ const Table = ({ columns, data, actions, onSort, sortConfig = {} }) => {
                       onClick={() => action.onClick(row)}
                       title={action.label}
                     >
-                      <span className="action-emoji">{action.emoji}</span>
+                      {action.label}
                     </button>
                   ))}
                 </td>

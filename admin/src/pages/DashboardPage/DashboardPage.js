@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './DashboardPage.css';
 import apiService from '../../services/apiService';
+import './DashboardPage.css';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -9,8 +9,6 @@ const DashboardPage = () => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,16 +51,6 @@ const DashboardPage = () => {
     } catch {
       return dateString;
     }
-  };
-
-  const handleViewEvent = (event) => {
-    setSelectedEvent(event);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
   };
 
   if (isLoading) {
@@ -116,11 +104,6 @@ const DashboardPage = () => {
           {users.slice(0, 5).map(user => (
             <div key={user._id} className="user-card">
               <div className="user-header">
-                <img 
-                  src={user.profileImage || 'https://via.placeholder.com/50'} 
-                  alt={user.name} 
-                  className="user-avatar"
-                />
                 <div className="user-info">
                   <h3 className="user-name">{user.name}</h3>
                   <p className="user-email">{user.email}</p>
@@ -135,12 +118,11 @@ const DashboardPage = () => {
         </div>
       </section>
 
-      {/* Events Section */}
       <section className="events-section">
         <div className="section-header">
           <h2>Events</h2>
           <button 
-            onClick={() => navigate('/admin/events')}
+            onClick={() => navigate('/events')}
             className="view-all-btn"
           >
             View All Events
@@ -153,7 +135,7 @@ const DashboardPage = () => {
                 <img 
                   src={event.image} 
                   alt={event.name} 
-                  className="event-image"
+                  className="dashboard-event-image"
                 />
                 <div className="event-info">
                   <h3 className="event-name">{event.name}</h3>
@@ -165,77 +147,15 @@ const DashboardPage = () => {
                   Location: {event.zoneDetails ? event.zoneDetails.name : event.location?.zone}
                 </p>
                 <p className="event-category">
-                  Category: {event.categoryDetails ? event.categoryDetails.category_name : event.category}
+                  Category: {event.categoryDetails && event.categoryDetails.length > 0
+                    ? event.categoryDetails.map(category => category.category_name).join(', ')
+                    : 'No category'}
                 </p>
-                <button 
-                  onClick={() => navigate(`/events/${event._id}`)}
-                  className="view-event-btn"
-                >
-                  View Details
-                </button>
               </div>
             </div>
           ))}
         </div>
       </section>
-
-      {/* Event Details Modal */}
-      {isModalOpen && selectedEvent && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{selectedEvent.name}</h2>
-              <button className="close-button" onClick={handleCloseModal}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="event-detail-image">
-                <img src={selectedEvent.image} alt={selectedEvent.name} />
-              </div>
-              <div className="event-detail-info">
-                <div className="detail-row">
-                  <span className="detail-label">Date:</span>
-                  <span className="detail-value">{formatDate(selectedEvent.date)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Location:</span>
-                  <span className="detail-value">
-                    {selectedEvent.zoneDetails ? selectedEvent.zoneDetails.name : selectedEvent.location?.zone}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Category:</span>
-                  <span className="detail-value">
-                    {selectedEvent.categoryDetails ? selectedEvent.categoryDetails.category_name : selectedEvent.category}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Description:</span>
-                  <p className="detail-value description">{selectedEvent.description}</p>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Price:</span>
-                  <span className="detail-value">{selectedEvent.price} RON</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Available Tickets:</span>
-                  <span className="detail-value">{selectedEvent.availableTickets}</span>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="edit-button"
-                onClick={() => navigate(`/admin/events/${selectedEvent._id}`)}
-              >
-                Edit Event
-              </button>
-              <button className="close-button" onClick={handleCloseModal}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
