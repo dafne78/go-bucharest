@@ -11,7 +11,7 @@ router.get('/:id', eventCategoryController.getEventCategoryById);
 
 // Rute protejate (necesită autentificare)
 router.use(protect)
-router.post('/add',eventCategoryController.createEventCategory);
+router.post('/add', eventCategoryController.createEventCategory);
 router.put('/:id', eventCategoryController.updateEventCategory);
 router.delete('/:id', eventCategoryController.deleteEventCategory);
 router.post('/:id/tags', eventCategoryController.addTagToEventCategory);

@@ -11,28 +11,6 @@
   margin-bottom: var(--spacing-lg);
 }
 
-.add-button {
-  display: flex;
-  align-items: center;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-button:hover {
-  background-color: var(--primary-dark);
-}
-
-.add-emoji {
-  font-size: 16px;
-  margin-right: var(--spacing-sm);
-}
-
 .categories-content {
   position: relative;
   min-height: 300px;

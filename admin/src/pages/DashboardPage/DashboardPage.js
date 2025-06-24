@@ -94,7 +94,7 @@ const DashboardPage = () => {
         <div className="section-header">
           <h2>Users</h2>
           <button 
-            onClick={() => navigate('/admin/users')}
+            onClick={() => navigate('/users')}
             className="view-all-btn"
           >
             View All Users
@@ -130,23 +130,23 @@ const DashboardPage = () => {
         </div>
         <div className="events-grid">
           {events.slice(0, 5).map(event => (
-            <div key={event._id} className="event-card">
-              <div className="event-header">
+            <div key={event._id} className="dasboard-event-card">
+              <div className="dasboard-event-header">
                 <img 
                   src={event.image} 
                   alt={event.name} 
                   className="dashboard-event-image"
                 />
-                <div className="event-info">
-                  <h3 className="event-name">{event.name}</h3>
-                  <p className="event-date">{formatDate(event.date)}</p>
+                <div className="dasboard-event-info">
+                  <h3 className="dasboard-event-name">{event.name}</h3>
+                  <p className="dasboard-event-date">{formatDate(event.date)}</p>
                 </div>
               </div>
-              <div className="event-details">
-                <p className="event-location">
+              <div className="dasboard-event-details">
+                <p className="dasboard-event-location">
                   Location: {event.zoneDetails ? event.zoneDetails.name : event.location?.zone}
                 </p>
-                <p className="event-category">
+                <p className="dasboard-event-category">
                   Category: {event.categoryDetails && event.categoryDetails.length > 0
                     ? event.categoryDetails.map(category => category.category_name).join(', ')
                     : 'No category'}

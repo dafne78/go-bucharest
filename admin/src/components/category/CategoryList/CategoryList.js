@@ -4,23 +4,11 @@ import categoryService from '../../../services/categoryService';
 import Table from '../../common/Table/Table';
 import './CategoryList.css';
 
-const CategoryList = ({ onEdit, onView, categories, tags, setCategories, fetchCategories }) => {
-  const [loading, setLoading] = useState(true);
+const CategoryList = ({ onEdit, onView, onDelete, categories, tags, setCategories, fetchCategories }) => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'category_name', direction: 'asc' });
-
-  const handleDeleteCategory = async (category) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      try {
-        await categoryService.deleteCategory(category.id);
-        setCategories(categories.filter(cat => cat.id !== category.id));
-      } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Could not delete the category. Please try again.');
-      }
-    }
-  };
 
   const requestSort = (key) => {
     let direction = 'asc';
@@ -85,30 +73,15 @@ const CategoryList = ({ onEdit, onView, categories, tags, setCategories, fetchCa
 
   const actions = [
     { 
-      type: 'view', 
-      label: 'View',
-      onClick: onView
-    },
-    { 
       type: 'edit', 
       label: 'Edit',
       onClick: onEdit
-    },
-    { 
-      type: 'delete', 
-      label: 'Delete',
-      onClick: handleDeleteCategory
     }
   ];
 
   return (
     <div className="category-list">
       <div className="list-header">
-        <div className="list-actions">
-            <button className="refresh-button" onClick={fetchCategories}>
-              Refresh
-            </button>
-          </div>
         <div className="search-filter">
           <div className="search-box">
             <input
@@ -120,17 +93,32 @@ const CategoryList = ({ onEdit, onView, categories, tags, setCategories, fetchCa
             />
           </div>
         </div>
-      </div>
-
-      {error ? (
-        <div className="error-container">
-          <p className="error-text">{error}</p>
-          <button className="retry-button" onClick={fetchCategories}>
-            Try Again
+        <div className="list-actions">
+          <button className="refresh-button" onClick={fetchCategories}>
+          <i className="refresh-icon"></i>
+            Refresh
           </button>
         </div>
-      ) : (
+      </div>
+      <div className="list-content">
+        { loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading categories...</p>
+          </div>
+        ) : error ? (
+          <div className="error-container">
+            <p className="error-text">{error}</p>
+            <button className="retry-button" onClick={fetchCategories}>
+              Try Again
+            </button>
+          </div>
+        ) : (
           <>
+            <div className="list-stats">
+              <span className="stats-total">Total: <strong>{filteredCategories.length}</strong> categories</span>
+            </div>
+
             {filteredCategories.length > 0 ? (
               <Table 
                 columns={columns} 
@@ -139,14 +127,16 @@ const CategoryList = ({ onEdit, onView, categories, tags, setCategories, fetchCa
                 onSort={requestSort}
                 sortConfig={sortConfig}
               />
-            ) : (
-              <div className="no-results">
-                <span className="no-results-emoji">😔</span>
-                <p>No categories found matching your search criteria.</p>
-              </div>
-            )}
-          </>
-        )}
+              ) : (
+                <div className="no-results">
+                  <p>No categories found matching your search criteria.</p>
+                </div>
+              )}
+            </>
+          )}
+      </div>
+
+      
       </div>
   );
 };

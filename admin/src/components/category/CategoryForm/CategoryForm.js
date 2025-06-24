@@ -3,17 +3,15 @@ import React, { useState, useEffect } from 'react';
 import categoryService from '../../../services/categoryService';
 import './CategoryForm.css';
 
-const CategoryForm = ({ category, onSubmit, onCancel }) => {
+const CategoryForm = ({ category, onSubmit, onCancel, onDelete, isLoading }) => {
   const [formData, setFormData] = useState({
     category_name: '',
-    category_image: null,
     tags: []
   });
   const [availableTags, setAvailableTags] = useState([]);
-  const [previewImage, setPreviewImage] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() => {
     fetchTags();
@@ -23,23 +21,20 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
     if (category) {
       setFormData({
         category_name: category.category_name || '',
-        tags: category.tags || [],
-        category_image: null // Don't load existing image, just show preview
+        tags: category.tags || []
       });
-      
-      setPreviewImage(category.category_image || '');
     }
   }, [category]);
 
   const fetchTags = async () => {
-    setIsLoading(true);
+    setIsLoadingData(true);
     try {
       const response = await categoryService.getAllTags();
       setAvailableTags(response.data);
     } catch (error) {
       console.error('Error fetching tags:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingData(false);
     }
   };
 
@@ -67,24 +62,6 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Update form data
-    setFormData(prev => ({
-      ...prev,
-      category_image: file
-    }));
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreviewImage(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const validate = () => {
     const newErrors = {};
     
@@ -107,42 +84,55 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
     setIsSubmitting(true);
     
     try {
-      // Prepare form data for submission
-      const formDataToSubmit = new FormData();
-      formDataToSubmit.append('category_name', formData.category_name);
-      
-      // Append tags as JSON string
-      formDataToSubmit.append('tags', JSON.stringify(formData.tags));
-      
-      // Append image if exists
-      if (formData.category_image) {
-        formDataToSubmit.append('category_image', formData.category_image);
-      }
+      // Prepare form data as JSON object
+      const formDataToSubmit = {
+        category_name: formData.category_name,
+        tags: formData.tags
+      };
       
       await onSubmit(formDataToSubmit);
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Error handling is managed by the parent component
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to save category. Please try again.'
+      }));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="category-form-container">
-      {isLoading ? (
+  const handleDelete = async () => {
+    try {
+      await onDelete(category);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to delete category. Please try again.'
+      }));
+    }
+  };
+
+  if (isLoadingData) {
+    return (
+      <div className="category-form-container">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading data...</p>
+          <p className="loading-text">Loading form data...</p>
         </div>
-      ) : (
+      </div>
+    );
+  }
+
+  return (
+    <div className="category-form-container">
         <form className="category-form" onSubmit={handleSubmit}>
           <div className="form-section">
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="category_name">
-                  <span className="label-emoji">📁</span>
-                  Category Name <span className="required">*</span>
+                  Name <span className="required">*</span>
                 </label>
                 <input
                   type="text"
@@ -155,39 +145,10 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
                 />
                 {errors.category_name && <span className="error-message">{errors.category_name}</span>}
               </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="category_image">
-                  <span className="label-emoji">🖼️</span>
-                  Category Image
-                </label>
-                <div className="image-upload-container">
-                  {previewImage && (
-                    <div className="image-preview">
-                      <img src={previewImage} alt="Category preview" />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    id="category_image"
-                    name="category_image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                  <label htmlFor="category_image" className="upload-button">
-                    <span className="upload-emoji">{previewImage ? '🔄' : '📤'}</span>
-                    {previewImage ? 'Change Image' : 'Upload Image'}
-                  </label>
-                </div>
-              </div>
-            </div>
-            
+            </div>            
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="tags">
-                  <span className="label-emoji">🏷️</span>
                   Associated Tags
                 </label>
                 <select
@@ -205,7 +166,6 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
                   ))}
                 </select>
                 <small className="help-text">
-                  <span className="help-emoji">💡</span>
                   Hold CTRL to select multiple tags
                 </small>
               </div>
@@ -213,35 +173,40 @@ const CategoryForm = ({ category, onSubmit, onCancel }) => {
           </div>
           
           <div className="form-actions">
+            {category && onDelete && (
+              <button 
+                type="button" 
+                className="delete-button" 
+                onClick={handleDelete}
+                disabled={isLoading || isSubmitting}
+              >
+                Delete Category
+              </button>
+            )}
             <button 
               type="button" 
               className="cancel-button" 
               onClick={onCancel}
-              disabled={isSubmitting}
+              disabled={isLoading || isSubmitting}
             >
-              <span className="button-emoji">❌</span>
               Cancel
             </button>
             <button 
               type="submit" 
               className="submit-button"
-              disabled={isSubmitting}
+              disabled={isLoading || isSubmitting}
             >
-              {isSubmitting ? (
+              {isLoading || isSubmitting ? (
                 <>
                   <span className="button-spinner"></span>
                   Saving...
                 </>
               ) : (
-                <>
-                  <span className="button-emoji">{category ? '💾' : '📁'}</span>
-                  {category ? 'Update Category' : 'Add Category'}
-                </>
+                category ? 'Update Category' : 'Add Category'
               )}
             </button>
           </div>
         </form>
-      )}
     </div>
   );
 };

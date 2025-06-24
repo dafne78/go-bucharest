@@ -5,11 +5,9 @@ import CategoryList from '../../components/category/CategoryList/CategoryList';
 import CategoryForm from '../../components/category/CategoryForm/CategoryForm';
 import CategoryDetail from '../../components/category/CategoryDetails/CategoryDetails';
 import categoryService from '../../services/categoryService';
-import authService from '../../services/authService';
 import './Categories.css';
 
 const CategoryPage = () => {
-  const [user, setUser] = useState(authService.getUser());
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [activeView, setActiveView] = useState('list');
@@ -57,15 +55,33 @@ const CategoryPage = () => {
     setActiveView('edit');
   };
 
-  const handleViewCategory = (category) => {
-    setSelectedCategory(category);
-    setActiveView('view');
-  };
-
   const handleCloseForm = () => {
     setActiveView('list');
     setSelectedCategory(null);
     setError(null);
+  };
+
+  const handleDeleteCategory = async (category) => {
+    if (window.confirm(`Are you sure you want to delete "${category.category_name}"?`)) {
+      try {
+        await categoryService.deleteCategory(category.id);
+        setCategories(categories.filter(cat => cat.id !== category.id));
+        showSuccessMessage('Category deleted successfully!');
+        handleCloseForm();
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        setError(error.message || 'Failed to delete category');
+      }
+    }
+  };
+
+  // Show success message with auto-hide
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
   };
 
   const handleSaveCategory = async (categoryData) => {
@@ -73,15 +89,29 @@ const CategoryPage = () => {
     setError(null);
     
     try {
+      let updatedCategories;
+      
       if (selectedCategory) {
         // Update existing category
-        await categoryService.updateCategory(selectedCategory.id, categoryData);
+        const response = await categoryService.updateCategory(selectedCategory.id, categoryData);
         setSuccessMessage('Category updated successfully!');
+        
+        // Update the category in the state
+        updatedCategories = categories.map(category => 
+          category.id === selectedCategory.id 
+            ? { ...category, ...categoryData } 
+            : category
+        );
       } else {
         // Add new category
-        await categoryService.createCategory(categoryData);
+        const response = await categoryService.createCategory(categoryData);
         setSuccessMessage('Category added successfully!');
+        
+        // Add the new category to the state
+        updatedCategories = [...categories, response.data || response];
       }
+      
+      setCategories(updatedCategories);
       
       // Show success message
       setShowSuccess(true);
@@ -92,7 +122,7 @@ const CategoryPage = () => {
       }, 3000);
       
       // Return to list
-      setActiveView('list');
+      handleCloseForm();
     } catch (error) {
       console.error('Error saving category:', error);
       setError(error.message || 'Could not save the category. Please try again.');
@@ -103,7 +133,7 @@ const CategoryPage = () => {
   return (
     <div className="categories-page">
       <Header 
-        title="Events Management" 
+        title="Categories Management" 
         handleAdd={handleAddCategory}
         handleAddText = "Add New Category"
       />
@@ -111,27 +141,29 @@ const CategoryPage = () => {
       {loading ? (
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading events...</p>
+          <p>Loading categories...</p>
         </div>
       ) : (
         <div className="categories-content">
           {activeView === 'list' && (
             <>
-              {categories.length === 0 && !loading && (
+              {showSuccess && (
+                <div className="success-alert">
+                  {successMessage}
+                </div>
+              )}
+                {categories.length === 0 && !loading && (
                 <div className="empty-state">
                   <p>No categories found.</p>
                 </div>
               )}
-              
-              {categories.length > 0 && (
                 <CategoryList
-                  onEdit={handleEditCategory} 
-                  onView={handleViewCategory} 
+                  onEdit={handleEditCategory}
                   categories={categories}
                   tags={tags}
                   setCategories={setCategories}
+                  fetchCategories={fetchCategories}
                 />
-              )}
             </>
           )}
         
@@ -154,18 +186,10 @@ const CategoryPage = () => {
                 category={selectedCategory} 
                 onSubmit={handleSaveCategory} 
                 onCancel={handleCloseForm}
+                onDelete={selectedCategory ? handleDeleteCategory : null}
                 isLoading={isLoading}
               />
             </div>
-          </div>
-        )}
-        
-        {activeView === 'view' && (
-          <div className="modal-overlay">
-            <CategoryDetail 
-              categoryId={selectedCategory.id} 
-              onClose={handleCloseForm}
-            />
           </div>
         )}
       </div>

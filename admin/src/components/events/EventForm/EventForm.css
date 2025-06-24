@@ -1,22 +1,14 @@
-/* /src/components/event/EventForm/EventForm.css */
 .event-form-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 24px;
 }
 
 .event-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.form-section {
-  background-color: var(--surface);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--primary);
+  gap: 24px;
 }
 
 .section-header {
@@ -242,60 +234,6 @@ input[type="file"] {
   font-size: 0.9rem;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--border);
-  background-color: var(--surface-variant, #f8f9fa);
-  margin-left: calc(-1 * var(--spacing-lg));
-  margin-right: calc(-1 * var(--spacing-lg));
-  margin-bottom: calc(-1 * var(--spacing-lg));
-  padding-left: var(--spacing-lg);
-  padding-right: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
-}
-
-.submit-button,
-.cancel-button {
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  min-width: 150px;
-  height: 48px;
-  font-size: 0.95rem;
-}
-
-.submit-button {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
-  border: none;
-}
-
-.submit-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-.cancel-button {
-  background-color: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-.cancel-button:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
-}
-
 .button-emoji {
   font-size: 1rem;
 }
@@ -348,16 +286,6 @@ input[type="file"] {
   position: relative;
 }
 
-.currency-symbol {
-  position: absolute;
-  right: var(--spacing-md);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
-  font-weight: 500;
-  pointer-events: none;
-}
-
 .cost-input {
   padding-right: 50px !important;
 }
@@ -377,18 +305,6 @@ input[type="file"] {
   .coordinates-row {
     flex-direction: column;
   }
-  
-  .form-actions {
-    flex-direction: column;
-    gap: var(--spacing-md);
-  }
-  
-  .submit-button,
-  .cancel-button {
-    width: 100%;
-    justify-content: center;
-  }
-  
   .image-preview {
     height: 150px;
   }
@@ -468,35 +384,4 @@ input[type="file"] {
   color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: var(--spacing-sm);
-}
-
-.delete-button {
-  background-color: var(--error, #ff5757);
-  color: white;
-  border: none;
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  min-width: 150px;
-  height: 48px;
-  font-size: 0.95rem;
-  align-self: flex-start;
-}
-
-.delete-button:hover:not(:disabled) {
-  background-color: var(--error-dark, #ff3333);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 87, 87, 0.3);
-}
-
-.delete-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
 }

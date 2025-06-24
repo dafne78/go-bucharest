@@ -1,14 +1,12 @@
 /* /src/pages/EventsPage/Events.css */
 .events-page {
+  width: 100%;
   padding: var(--spacing-lg);
-  background-color: #f5f5f5;
-  min-height: 100vh;
 }
 
 .events-content {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  min-height: 300px;
 }
 
 .event-name-cell {

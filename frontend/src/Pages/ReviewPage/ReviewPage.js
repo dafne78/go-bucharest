@@ -289,7 +289,7 @@ const ReviewPage = ({ isLoggedIn }) => {
                               ))}
                             </div>
                             <span className="review-date">
-                              {formatDate(review.createdAt)}
+                              {new Date(review.timestamp).toLocaleDateString('en-GB')}
                             </span>
                           </div>
                           <p className="review-comment">{review.comment}</p>

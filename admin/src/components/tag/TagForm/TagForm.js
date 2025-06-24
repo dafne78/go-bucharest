@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './TagForm.css';
 
-const TagForm = ({ tag, onSubmit, onCancel }) => {
+const TagForm = ({ tag, onSubmit, onCancel, onDelete, isLoading }) => {
   const [formData, setFormData] = useState({
     name: ''
   });
@@ -67,6 +67,20 @@ const TagForm = ({ tag, onSubmit, onCancel }) => {
     }
   };
 
+  
+
+  const handleDelete = async () => {
+    try {
+      await onDelete(tag);
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to delete tag. Please try again.'
+      }));
+    }
+  };
+
   return (
     <div className="tag-form-container">
       <form className="tag-form" onSubmit={handleSubmit}>
@@ -74,7 +88,6 @@ const TagForm = ({ tag, onSubmit, onCancel }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="name">
-                <span className="label-emoji">🏷️</span>
                 Tag Name <span className="required">*</span>
               </label>
               <input
@@ -90,15 +103,23 @@ const TagForm = ({ tag, onSubmit, onCancel }) => {
             </div>
           </div>
         </div>
-        
         <div className="form-actions">
+          {tag && onDelete && (
+            <button 
+              type="button" 
+              className="delete-button" 
+              onClick={handleDelete}
+              disabled={isLoading || isSubmitting}
+            >
+              Delete Tag
+            </button>
+          )}
           <button 
             type="button" 
             className="cancel-button" 
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            <span className="button-emoji">❌</span>
             Cancel
           </button>
           <button 
@@ -113,7 +134,6 @@ const TagForm = ({ tag, onSubmit, onCancel }) => {
               </>
             ) : (
               <>
-                <span className="button-emoji">{tag ? '💾' : '➕'}</span>
                 {tag ? 'Update Tag' : 'Add Tag'}
               </>
             )}

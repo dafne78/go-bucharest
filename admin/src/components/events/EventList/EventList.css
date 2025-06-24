@@ -51,17 +51,7 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
-}
-
-.filter-button:hover {
-  border-color: #00c4ae;
-  color: #00c4ae;
-}
-
-.filter-button.active {
-  background-color: #00c4ae;
-  color: #fff;
-  border-color: #00c4ae;
+  margin-right: 10px;
 }
 
 .filter-emoji {

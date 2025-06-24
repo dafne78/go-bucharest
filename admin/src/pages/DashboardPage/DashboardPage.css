@@ -157,7 +157,7 @@
   gap: 1.5rem;
 }
 
-.event-card {
+.dasboard-event-card {
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
@@ -168,12 +168,12 @@
   height: 100%;
 }
 
-.event-card:hover {
+.dasboard-event-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.event-header {
+.dasboard-event-header {
   position: relative;
 }
 
@@ -184,11 +184,11 @@
   transition: transform 0.3s ease;
 }
 
-.event-card:hover .dashboard-event-image {
+.dasboard-event-card:hover .dashboard-event-image {
   transform: scale(1.05);
 }
 
-.event-info {
+.dasboard-event-info {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -197,26 +197,26 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
 }
 
-.event-name {
-  font-size: 16px;
+.dasboard-event-name {
+  font-size: 24px;
   margin: 0 0 0.25rem 0;
   font-weight: 600;
   color: white;
 }
 
-.event-date {
+.dasboard-event-date {
   font-size: 13px;
   margin: 0;
   opacity: 0.9;
   color: white;
 }
 
-.event-details {
+.dasboard-event-details {
   padding: 1.25rem;
 }
 
-.event-location,
-.event-category {
+.dasboard-event-location,
+.dasboard-event-category {
   font-size: 13px;
   color: #6c757d;
   margin: 0.5rem 0;

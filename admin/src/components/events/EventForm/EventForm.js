@@ -9,7 +9,7 @@ import './EventForm.css';
 
 const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     description: '',
     date: '',
     time: '',
@@ -40,7 +40,7 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
   useEffect(() => {
     if (event) {
       setFormData({
-        title: event.title || '',
+        name: event.name || '',
         description: event.description || '',
         date: event.date ? event.date.split('T')[0] : '',
         time: event.time || '',
@@ -137,14 +137,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
     }));
   };
 
-  const handleTagsChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData(prev => ({
-      ...prev,
-      tags: selectedOptions
-    }));
-  };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -187,8 +179,8 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
     }
     
     if (!formData.description.trim()) {
@@ -234,7 +226,7 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
     
     try {
       const eventData = {
-        title: formData.title.trim(),
+        name: formData.name.trim(),
         description: formData.description.trim(),
         date: formData.date,
         time: formData.time,
@@ -277,16 +269,14 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete event "${formData.title}"?`)) {
-      try {
-        await onDelete(event);
-      } catch (error) {
-        console.error('Error deleting event:', error);
-        setErrors(prev => ({
-          ...prev,
-          submit: error.message || 'Failed to delete event. Please try again.'
-        }));
-      }
+    try {
+      await onDelete(event);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to delete event. Please try again.'
+      }));
     }
   };
 
@@ -305,23 +295,22 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
     <div className="event-form-container">
       <form className="event-form" onSubmit={handleSubmit}>
         <div className="form-section">
-          <h3>Event Details</h3>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="title">
-                Title <span className="required">*</span>
+              <label htmlFor="name">
+                Name <span className="required">*</span>
               </label>
               <input
                 type="text"
-                id="title"
-                name="title"
+                id="name"
+                name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={errors.title ? 'error' : ''}
+                className={errors.name ? 'error' : ''}
                 placeholder="Enter event title"
                 disabled={isLoading || isSubmitting}
               />
-              {errors.title && <span className="error-message">{errors.title}</span>}
+              {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
           </div>
 
@@ -389,12 +378,11 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
                   value={formData.cost}
                   onChange={handleChange}
                   className={`cost-input ${errors.cost ? 'error' : ''}`}
-                  placeholder="0"
+                  placeholder="0 RON"
                   min="0"
                   step="0.01"
                   disabled={isLoading || isSubmitting}
                 />
-                <span className="currency-symbol">RON</span>
               </div>
               {errors.cost && <span className="error-message">{errors.cost}</span>}
               <small className="help-text">Leave empty or 0 for free events</small>
@@ -403,10 +391,9 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
         </div>
 
         <div className="form-section">
-          <h3>Location</h3>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="location.exact">Venue/Address</label>
+              <label htmlFor="location.exact">Address <span className="required">*</span></label>
               <input
                 type="text"
                 id="location.exact"
@@ -418,7 +405,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
               />
             </div>
           </div>
-
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="location.zone">
@@ -445,7 +431,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
         </div>
 
         <div className="form-section">
-          <h3>Categories & Tags</h3>
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="categories">Categories</label>
@@ -465,26 +450,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
                 ))}
               </select>
               <small className="help-text">Hold CTRL/CMD to select multiple categories</small>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="tags">Tags</label>
-              <select
-                id="tags"
-                name="tags"
-                multiple
-                value={formData.tags}
-                onChange={handleTagsChange}
-                className="tags-select"
-                disabled={isLoading || isSubmitting}
-              >
-                {availableTags.map(tag => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
-              <small className="help-text">Hold CTRL/CMD to select multiple tags</small>
             </div>
           </div>
         </div>
@@ -541,15 +506,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
               Delete Event
             </button>
           )}
-          <div className="form-actions-right">
-            <button 
-              type="button" 
-              className="cancel-button" 
-              onClick={onCancel}
-              disabled={isLoading || isSubmitting}
-            >
-              Cancel
-            </button>
             <button 
               type="submit" 
               className="submit-button"
@@ -564,7 +520,6 @@ const EventForm = ({ event, onSubmit, onCancel, onDelete, isLoading }) => {
                 event ? 'Update Event' : 'Create Event'
               )}
             </button>
-          </div>
         </div>
       </form>
     </div>

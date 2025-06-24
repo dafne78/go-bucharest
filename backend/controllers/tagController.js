@@ -19,13 +19,13 @@ exports.createTag = async (req, res) => {
     
     const tagId = await tagModel.createTag({ name });
     
+    // Get the created tag to return complete data
+    const createdTag = await tagModel.getTagById(tagId);
+    
     res.status(201).json({
       success: true,
       message: 'Tag creat cu succes',
-      data: {
-        id: tagId,
-        name
-      }
+      data: createdTag
     });
   } catch (error) {
     console.error('Error in createTag:', error);
@@ -120,13 +120,13 @@ exports.updateTag = async (req, res) => {
     
     await tagModel.updateTag(tagId, { name });
     
+    // Get the updated tag to return complete data
+    const updatedTag = await tagModel.getTagById(tagId);
+    
     res.json({
       success: true,
       message: 'Tag actualizat cu succes',
-      data: {
-        id: tagId,
-        name
-      }
+      data: updatedTag
     });
   } catch (error) {
     console.error('Error in updateTag:', error);

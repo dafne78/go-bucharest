@@ -25,7 +25,7 @@ const categoryService = {
   // Create a new category
   createCategory: async (categoryData) => {
     try {
-      return await apiService.post('/event-categories', categoryData);
+      return await apiService.post('/event-categories/add', categoryData);
     } catch (error) {
       console.error('Error creating category:', error);
       throw error;

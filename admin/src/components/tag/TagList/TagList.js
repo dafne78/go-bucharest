@@ -1,50 +1,12 @@
 // /admin/src/components/tag/TagList/TagList.js
-import React, { useState, useEffect } from 'react';
-import tagService from '../../../services/tagService';
+import React, { useState } from 'react';
 import Table from '../../common/Table/Table';
-import './TagList.css';
 
-const TagList = ({ onEdit, onDelete }) => {
-  const [tags, setTags] = useState([]);
-  const [loading, setLoading] = useState(true);
+const TagList = ({ tags, onEdit, fetchTags }) => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-
-  useEffect(() => {
-    fetchTags();
-  }, []);
-
-  const fetchTags = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await tagService.getAllTags();
-      setTags(response.data);
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-      setError('Could not load tags. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteTag = async (tag) => {
-    if (window.confirm(`Are you sure you want to delete "${tag.name}"?`)) {
-      try {
-        await tagService.deleteTag(tag.id);
-        setTags(tags.filter(t => t.id !== tag.id));
-        if (onDelete) {
-          onDelete(tag);
-        }
-      } catch (error) {
-        console.error('Error deleting tag:', error);
-        alert('Could not delete the tag. Please try again.');
-      }
-    }
-  };
 
   const handleEditTag = async (tag) => {
     try {
@@ -115,11 +77,6 @@ const TagList = ({ onEdit, onDelete }) => {
       type: 'edit', 
       label: 'Edit',
       onClick: handleEditTag
-    },
-    { 
-      type: 'delete', 
-      label: 'Delete',
-      onClick: handleDeleteTag
     }
   ];
 
@@ -158,7 +115,7 @@ const TagList = ({ onEdit, onDelete }) => {
         ) : (
           <>
             <div className="list-stats">
-              <span className="stats-total">Total: <strong>{tags.length}</strong> tags</span>
+              <span className="stats-total">Total: <strong>{filteredTags.length}</strong> tags</span>
             </div>
 
             {filteredTags.length > 0 ? (

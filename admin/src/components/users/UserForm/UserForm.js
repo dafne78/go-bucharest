@@ -179,16 +179,6 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete, isLoading }) => {
               Delete User
             </button>
           )}
-          
-          <div className="form-actions-right">
-            <button 
-              type="button" 
-              className="cancel-button" 
-              onClick={onCancel}
-              disabled={isLoading || isSubmitting}
-            >
-              Cancel
-            </button>
             <button 
               type="submit" 
               className="submit-button"
@@ -203,7 +193,6 @@ const UserForm = ({ user, onSubmit, onCancel, onDelete, isLoading }) => {
                 user ? 'Update User' : 'Add User'
               )}
             </button>
-          </div>
         </div>
       </form>
     </div>

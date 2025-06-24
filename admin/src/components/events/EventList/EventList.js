@@ -4,7 +4,7 @@ import eventService from '../../../services/eventsService';
 import Table from '../../common/Table/Table';
 import './EventList.css';
 
-const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
+const EventList = ({ onEdit, events, setEvents }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,21 +27,6 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
       setError('Could not load events. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDeleteEvent = async (event) => {
-    if (window.confirm(`Are you sure you want to delete "${event.name}"?`)) {
-      try {
-        await eventService.deleteEvent(event._id);
-        setEvents(events.filter(e => e._id !== event._id));
-        if (onDelete) {
-          onDelete(event);
-        }
-      } catch (error) {
-        console.error('Error deleting event:', error);
-        alert('Could not delete the event. Please try again.');
-      }
     }
   };
 
@@ -283,7 +268,7 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
           setShowStatusFilter(false);
         }}
       >
-        All Events ({statusCounts.all})
+        All Events
       </div>
       <div 
         className={`filter-option ${statusFilter === 'upcoming' ? 'active' : ''}`}
@@ -292,7 +277,7 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
           setShowStatusFilter(false);
         }}
       >
-        Upcoming ({statusCounts.upcoming})
+        Upcoming
       </div>
       <div 
         className={`filter-option ${statusFilter === 'completed' ? 'active' : ''}`}
@@ -301,7 +286,7 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
           setShowStatusFilter(false);
         }}
       >
-        Completed ({statusCounts.completed})
+        Completed
       </div>
     </div>
   );
@@ -309,24 +294,7 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
   return (
     <div className="event-list">
       <div className="list-header">
-        <div className="list-actions">
-          <button className="refresh-button" onClick={fetchEvents}>
-          <i className="refresh-icon"></i>
-            Refresh
-          </button>
-        </div>
-        <div className="search-filter">
-          <div className="filter-dropdown">
-            <button 
-              className={`filter-button ${showStatusFilter ? 'active' : ''}`}
-              onClick={() => setShowStatusFilter(!showStatusFilter)}
-            >
-              {statusFilter === 'all' ? 'All Events' : 
-               statusFilter === 'upcoming' ? 'Upcoming Events' : 'Completed Events'}
-            </button>
-            {showStatusFilter && <StatusFilterMenu />}
-          </div>
-          
+        <div className="search-filter">         
           <div className="search-box">
             <input
               type="text"
@@ -336,6 +304,22 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
               className="search-input"
             />
           </div>
+        </div>
+        <div className="filter-dropdown">
+            <button 
+              className={`filter-button ${showStatusFilter ? 'active' : ''}`}
+              onClick={() => setShowStatusFilter(!showStatusFilter)}
+            >
+              {statusFilter === 'all' ? 'All Events' : 
+               statusFilter === 'upcoming' ? 'Upcoming Events' : 'Completed Events'}
+            </button>
+            {showStatusFilter && <StatusFilterMenu />}
+        </div>
+        <div className="list-actions">
+          <button className="refresh-button" onClick={fetchEvents}>
+          <i className="refresh-icon"></i>
+            Refresh
+          </button>
         </div>
       </div>
 
@@ -348,6 +332,9 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
         </div>
       ) : (
         <>
+          <div className="list-stats">
+            <span className="stats-total">Total: <strong>{filteredEvents.length}</strong> events</span>
+          </div>
           {filteredEvents.length > 0 ? (
             <Table 
               columns={columns} 
@@ -359,24 +346,7 @@ const EventList = ({ onEdit, onView, onDelete, events, setEvents }) => {
             />
           ) : (
             <div className="no-results">
-              <div className="no-results-text">
-                {searchTerm || statusFilter !== 'all' ? (
-                  <>
-                    <p>No events found matching your search criteria.</p>
-                    <button 
-                      className="clear-filters-button"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setStatusFilter('all');
-                      }}
-                    >
-                      Clear Filters
-                    </button>
-                  </>
-                ) : (
-                  <p>No events available. Create your first event to get started!</p>
-                )}
-              </div>
+              <p>No events found matching your search criteria.</p>
             </div>
           )}
         </>
