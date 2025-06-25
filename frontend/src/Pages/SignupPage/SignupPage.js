@@ -37,16 +37,15 @@ const SignupPage = () => {
     }
 
     try {
-      const response = await apiService.post('/auth/signup', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+      const response = await apiService.post('/auth/register', {
+        name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password
       });
 
-      if (response.token) {
-        authService.setToken(response.token);
-      navigate('/profile');
+      if (response.data && response.data.token) {
+        authService.setToken(response.data.token);
+        navigate('/profile');
       }
     } catch (err) {
       setError(err.message || 'An error occurred during signup');

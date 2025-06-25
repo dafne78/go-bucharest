@@ -1,4 +1,4 @@
-// /admin/src/services/authService.js
+// /frontend/src/services/authService.js
 const TOKEN_KEY = 'admin_auth_token';
 const USER_KEY = 'admin_user';
 
